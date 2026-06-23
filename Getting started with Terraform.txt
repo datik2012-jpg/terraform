@@ -1,0 +1,274 @@
+See Terraform Documentation and Tutorials for specific cloud provider: https://developer.hashicorp.com/terraform/tutorials
+: https://developer.hashicorp.com/terraform/tutorials
+
+local.tf
+
+resource "local_file" "pet" {
+  filename = "/root/pets.tf"
+  content = "We love pets"
+}
+
+where resource - is Block Name
+"local_file" - is Resource Type .Where local=provider file=resource
+"pet" - is Resource Name
+Arguments are: filename = "/root/pets.tf"
+               content = "We love pets"
+
+
+Example ec2 provisioning:
+
+resource "aws_instance" "webserver" {
+  ami = "ami-ocwfhsjgfkdfkgd"
+  instance_type = "t2.micro"
+}
+
+How to run:
+
+You run it by placing it in a .tf file, running terraform init, then terraform apply to create the EC2 instance.
+
+
+steps: 
+
+1. Install Terraform
+Download Terraform from HashiCorp and ensure the terraform command works:
+
+Code
+terraform -version
+2. Configure AWS credentials
+Terraform needs AWS access. The simplest method:
+
+Code
+aws configure
+You’ll enter:
+
+AWS Access Key ID
+
+AWS Secret Access Key
+
+Default region (e.g., us-east-1)
+
+Output format (json)
+
+3. Create a Terraform project folder
+Make a directory and add your file:
+
+Code
+mkdir tf-demo
+cd tf-demo
+Create a file named main.tf:
+
+Code
+resource "aws_instance" "webserver" {
+  ami           = "ami-ocwfhsjgfkdfkgd"
+  instance_type = "t2.micro"
+}
+4. Initialize Terraform
+This downloads the AWS provider plugin:
+
+Code
+terraform init
+5. Validate the configuration
+Check for syntax errors:
+
+Code
+terraform validate
+6. Preview the changes
+See what Terraform will create:
+
+Code
+terraform plan
+If the AMI is invalid, this is where you’ll see the error.
+
+7. Apply the configuration
+Create the EC2 instance:
+
+Code
+terraform apply
+Type yes when prompted.
+
+8. Destroy resources when done
+To avoid AWS charges:
+
+Code
+terraform destroy
+
+/////////////////////////Lab HCL Basics //////////
+
+In this lab, we will learn how to get started with HashiCorp Configuration Language that is used by Terraform.
+
+
+Navigate to the directory /root/terraform-projects/HCL. There is a file present in this location.
+What is the file extension used by this file?
+
+List the file by using the ls command.
+
+Answer .tf file
+
+What is the resource type?
+
+Answer: local_file
+
+
+What is the resource name used for the local_file resource in this configuration file?
+
+Answer: games
+
+What is the name of the provider for which we are creating this resource?
+
+Answer: local   
+
+Which one of the below is not an example of an argument used within the resource block?
+
+Answer: resource_type = "dadad"  -cause not mentioned int he tf file
+
+If you run a terraform plan now? Would it work?
+
+
+Answer: no , need some step before    - like - init
+
+
+Run a terraform init inside the configuration directory: /root/terraform-projects/HCL
+
+
+# terraform init 
+Initializing the backend...
+Initializing provider plugins...
+- Finding latest version of hashicorp/local...
+- Installing hashicorp/local v2.9.0...
+- Installed hashicorp/local v2.9.0 (signed by HashiCorp)
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+What was the version of the local provider plugin that was downloaded?
+
+# terraform --version
+Terraform v1.11.0
+on linux_amd64
++ provider registry.terraform.io/hashicorp/local v2.9.0
+
+Answer: 2.9.0
+
+Now, try to run a terraform plan.
+
+Did it print an execution plan as expected?
+
+
+# terraform plan
+╷
+│ Error: Missing required argument
+│ 
+│   on main.tf line 1, in resource "local_file" "games":
+│    1: resource "local_file" "games" {
+│ 
+│ The argument "filename" is required, but no definition was found.
+╵
+╷
+│ Error: Unsupported argument
+│ 
+│   on main.tf line 2, in resource "local_file" "games":
+│    2:   file     = "/root/favorite-games"
+│ 
+│ An argument named "file" is not expected here.
+
+Answer: Invalid argument the issue
+
+
+
+Fix the argument in the configuration file and then run a terraform plan followed by terraform apply to create the local_file resource called games.
+
+Fixed "file" to "filename" :
+
+resource "local_file" "games" {
+  filename = "/root/favorite-games"
+  content  = "FIFA 21"
+}
+
+# terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.games will be created
+  + resource "local_file" "games" {
+      + content              = "FIFA 21"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/favorite-games"
+      + id                   = (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform
+apply" now.
+
+
+We have now created our very first resource using Terraform! Next, let's work on updating the resource.
+
+If you look at the output produced by the terraform plan and terraform apply commands closely, we can see that the file content is printed on the screen.
+
+Since we do not want this to happen, we have updated the resource type.
+
+What is the resource type that we have updated?
+
+Answer: need change to : sensitive_content = "FIFA 21" . That's right, we have made use of the local_sensitive_file resource type to mask the contents of the file from the execution plan.
+
+
+
+That's right, we have made use of the local_sensitive_file resource type to mask the contents of the file from the execution plan.
+
+However, something is wrong. If we run terraform plan or terraform apply now we see an error!
+
+
+Identify and fix the issue.
+Remember, we don't want the content of the file to show up in the execution plan at all.
+
+Fixed:
+
+resource "local_sensitive_file" "games" {
+  filename     = "/root/favorite-games"
+  content  = var.file_content
+}
+
+variable "file_content" {
+  type        = string
+  description = "FIFA 21"
+  sensitive   = true
+}
+
+
+
+Notice that the content of the file was not displayed when using local_sensitive_file instead of the local_file resource.
+
+Note: Refer to the documentation to see all the arguments supported by this resource.
+
+Also note that as Terraform follows an immutable infrastructure approach, the file was recreated although the contents are the same.
+
+Output was:
+
+ + resource "local_sensitive_file" "games" {
+      + content              = (sensitive value)
+

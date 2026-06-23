@@ -1,0 +1,331 @@
+How to define input variables
+You create them using a variable block:
+
+variable "instance_type" {
+  type        = string
+  description = "EC2 instance type"
+  default     = "t2.micro"
+}
+
+
+
+Create vairbales file and use it:
+
+
+Files in the setup
+1. main.tf
+hcl
+resource "local_file" "pet" {
+  filename = var.filename
+  content  = var.content
+}
+
+resource "random_pet" "my-pet" {
+  prefix    = var.prefix
+  separator = var.separator
+  length    = var.length
+}
+This file defines two resources:
+
+A local file that writes text to /root/pets.txt
+
+A random pet generator that creates a random name like Mrs.tiger
+
+Each resource references variables using var.<name>.
+
+2. variables.tf
+hcl
+variable "filename" {
+  default = "/root/pets.txt"
+}
+
+variable "content" {
+  default = "We love pets!"
+}
+
+variable "prefix" {
+  default = "Mrs"
+}
+
+variable "separator" {
+  default = "."
+}
+
+variable "length" {
+  default = "1"
+}
+This file defines default values for all variables used in main.tf.
+
+How Terraform uses these files
+Terraform reads both files — it merges them into one configuration.
+
+When you run terraform apply, Terraform:
+
+Creates /root/pets.txt with the content "We love pets!"
+
+Generates a random pet name like Mrs.tiger
+
+The random name is stored in the state file and can be printed with an output block.
+
+🧠 Why this structure matters
+variables.tf makes your configuration reusable — you can override defaults in a .tfvars file or CLI.
+
+main.tf stays clean — it only references var.<name>.
+
+You can easily switch environments by changing variable values.
+
+✅ Typical workflow
+Step	Command	Purpose
+1	terraform init	Load providers
+2	terraform plan	Preview what will be created
+3	terraform apply	Execute and create resources
+4	terraform state show random_pet.my-pet	View generated name
+
+Example of the variable This defines a single variable named bella that contains multiple attributes — like a mini data structure.
+
+variable "bella" {
+  type = object({
+    name         = string
+    color        = string
+    age          = number
+    food         = list(string)
+    favorite_pet = bool
+  })
+
+  default = {
+    name         = "bella"
+    color        = "brown"
+    age          = 7
+    food         = ["fish", "chicken", "turkey"]
+    favorite_pet = true
+  }
+}
+
+How to use it in the resource:
+
+resource "local_file" "pet_info" {
+  filename = "/root/pet_info.txt"
+  content  = "Name: ${var.bella.name}, Color: ${var.bella.color}, Age: ${var.bella.age}"
+}
+
+
+You can override the default values in a .tfvars file:
+
+bella = {
+  name         = "luna"
+  color        = "white"
+  age          = 3
+  food         = ["salmon", "beef"]
+  favorite_pet = false
+}
+
+Then run:terraform apply -var-file="ded.tfvars"
+Terraform will use these new values instead of the defaults.
+
+/////////////////////////////Labs Variables ////////////////
+Which of the following is not a valid variable type?
+Answer: item - is not valid
+
+Which one of the below is not a valid data type in terraform?
+
+Answer: Array 
+
+
+Navigate to the directory /root/terraform-projects/variables. Which type does the variable called number belong to?
+
+variable "number" {
+     type = bool
+     default = true
+  
+}
+
+Answer: bool 
+
+
+
+How would you fetch the value of the key called slow from the variable called hard_drive in a terraform configuration?
+
+This variable is defined in the file variables.tf.
+
+
+
+variable "hard_drive" {
+     type = map
+     default = {
+          slow = "HHD"
+          fast = "SSD"
+     }
+}
+
+Answer: "${var.hard_drive["slow"]}"
+
+
+What is the index of the element called Female in the variable called gender?
+
+variable "gender" {
+     type = list(string)
+     default = ["Male", "Female"]
+}
+
+Answer: 1
+
+
+What is the type of variable called users?
+
+variable "users" {
+     type = set(string)
+     default = ["tom", "jerry", "pluto", "daffy", "donald", "jerry", "chip", "dale"]
+
+  
+}
+
+Answer: set(string)  - set of strings
+
+
+
+However, this variable has been defined incorrectly! Identify the mistake.
+
+Duplicate : jerry there  
+
+
+
+We have now updated the main.tf file in the same directory (/root/terraform-projects/variables) and added some resource blocks.
+
+Inspect them.
+
+
+resource "local_file" "jedi" {
+     filename = "/root/first-jedi"
+     content = "phanius"
+}
+
+What is the value for the argument called content used in the resource block for the resource jedi?
+
+Answer:      content = "phanius"
+
+
+Now, let's update this resource and add variables instead. Use the default value declared in the variable called jedi.
+
+
+This variable is a map. For the argument called content use the value of the key by the same name.
+And, similarly, for the argument called filename use the value by the same name.
+
+
+When ready, run terraform init, plan and apply to create this resource.
+
+Created:
+resource "local_file" "jedi" {
+     filename = "/root/first-jedi"
+     content = var.myjedi["content"]
+}
+
+
+variable "myjedi" {
+     type = map(string)
+     default = {
+       "content" = "phanius"
+     }
+}
+
+>terraform init , plan and apply:
+
+root@iac-server ~/terraform-projects/variables via 💠 default on ☁️  (us-east-1) ➜  terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.jedi will be created
+  + resource "local_file" "jedi" {
+      + content              = "phanius"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/first-jedi"
+      + id                   = (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform
+apply" now.
+
+root@iac-server ~/terraform-projects/variables via 💠 default on ☁️  (us-east-1) ➜  terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.jedi will be created
+  + resource "local_file" "jedi" {
+      + content              = "phanius"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/first-jedi"
+      + id                   = (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+local_file.jedi: Creating...
+local_file.jedi: Creation complete after 0s [id=23760ef64e0124aa08fecf101c302d3b64220d1a]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+root@iac-server ~/terraform-projects/variables via 💠 default on ☁️  (us-east-1) ➜  
+
+OR:variable.tf has now (they created no me)
+
+variable "jedi" {
+     type = map
+     default = {
+     filename = "/root/first-jedi"
+     content = "phanius"
+     }
+  
+}
+
+so in main.tf 
+
+we can do :
+
+resource "local_file" "jedi" {
+     filename = var.jedi["filename"]
+     content = var.jedi["content"]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

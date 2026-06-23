@@ -1,0 +1,1021 @@
+terraform init  - downloads and instals providers (cloud or local providers  - can be hundreds of provider)
+
+Providers can be:
+Official  :AWS,AZURE,Google and etc
+Partner: bigip, heruku, digitalocean
+Community: activedirectory, ucloud, netapp-gcp
+
+///////////////////////Lab - Terraform Providers ////////////
+
+We have a new configuration directory located at the path /root/terraform-projects/things-to-do. Inspect this directory and find out the number of providers initialized within this directory.
+
+Do not run terraform init yet!
+
+
+resource "local_file" "things-to-do" {
+  filename     = "/root/things-to-do.txt"
+  content  = "Clean my room before Christmas\nComplete the CKA Certification!"
+}
+resource "local_file" "more-things-to-do" {
+  filename     = "/root/more-things-to-do.txt"
+  content  = "Learn how to play Astronomia on the guitar!"
+}
+
+Answer: 0 providers
+
+
+How about now? How many provider plugins are installed in this configuration directory?
+
+Answer : i see in the folder terraform-provider-local_v2.2.2   - so i would say 1 provider   - which is correct answer
+
+
+How many configuration files exist in the directory: /root/terraform-projects/things-to-do ?
+
+
+I see only main.tf file there - so answer is 1 correct
+
+
+How many resources are configured in this configuration directory?
+
+Count all the resource blocks used.
+
+resource "local_file" "things-to-do" {
+  filename     = "/root/things-to-do.txt"
+  content  = "Clean my room before Christmas\nComplete the CKA Certification!"
+}
+resource "local_file" "more-things-to-do" {
+  filename     = "/root/more-things-to-do.txt"
+  content  = "Learn how to play Astronomia on the guitar!"
+}
+
+Answer: 2
+
+
+
+What is the version of the plugin for the local provider that has been downloaded for this configuration?
+
+I see in the foler : terraform-provider-local_v2.9.0_x5  
+
+
+Now, go ahead and create these resources using terraform!
+
+
+Once done, the two files defined inside the resource blocks should be created with the correct file names and content.
+
+
+Navigate to the folder: root@iac-server ~/terraform-projects on ☁️  (us-east-1) ✖ cd things-to-do
+
+resource "local_file" "things-to-do" {
+  filename     = "/root/things-to-do.txt"
+  content  = "Clean my room before Christmas\nComplete the CKA Certification!"
+}
+resource "local_file" "more-things-to-do" {
+  filename     = "/root/more-things-to-do.txt"
+  content  = "Learn how to play Astronomia on the guitar!"
+}
+
+
+
+root@iac-server ~/terraform-projects/things-to-do via 💠 default on ☁️  (us-east-1) ➜  terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.more-things-to-do will be created
+  + resource "local_file" "more-things-to-do" {
+      + content              = "Learn how to play Astronomia on the guitar!"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/more-things-to-do.txt"
+      + id                   = (known after apply)
+    }
+
+  # local_file.things-to-do will be created
+  + resource "local_file" "things-to-do" {
+      + content              = <<-EOT
+            Clean my room before Christmas
+            Complete the CKA Certification!
+        EOT
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/things-to-do.txt"
+      + id                   = (known after apply)
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform
+apply" now.
+
+terraform plan:
+
+
+root@iac-server ~/terraform-projects/things-to-do via 💠 default on ☁️  (us-east-1) ➜  terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.more-things-to-do will be created
+  + resource "local_file" "more-things-to-do" {
+      + content              = "Learn how to play Astronomia on the guitar!"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/more-things-to-do.txt"
+      + id                   = (known after apply)
+    }
+
+  # local_file.things-to-do will be created
+  + resource "local_file" "things-to-do" {
+      + content              = <<-EOT
+            Clean my room before Christmas
+            Complete the CKA Certification!
+        EOT
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/things-to-do.txt"
+      + id                   = (known after apply)
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform
+apply" now.
+
+terraform apply:
+
+root@iac-server ~/terraform-projects/things-to-do via 💠 default on ☁️  (us-east-1) ➜  terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.more-things-to-do will be created
+  + resource "local_file" "more-things-to-do" {
+      + content              = "Learn how to play Astronomia on the guitar!"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/more-things-to-do.txt"
+      + id                   = (known after apply)
+    }
+
+  # local_file.things-to-do will be created
+  + resource "local_file" "things-to-do" {
+      + content              = <<-EOT
+            Clean my room before Christmas
+            Complete the CKA Certification!
+        EOT
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/things-to-do.txt"
+      + id                   = (known after apply)
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+local_file.things-to-do: Creating...
+local_file.more-things-to-do: Creating...
+local_file.things-to-do: Creation complete after 0s [id=57de5ed15ca8120dba3bd950bad6d5e55b97f635]
+local_file.more-things-to-do: Creation complete after 0s [id=85e6ec1cf7be591e68345cbaf27a4529a4f25eb0]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+We have created another directory containing configuration files at /root/terraform-projects/christmas-wishlist.
+
+Inspect this configuration directory.
+
+2 filese there
+
+
+
+What is the filename that will be created by the resource called cyberpunk?
+
+resource "local_file" "cyberpunk" {
+  filename     = "/root/cyberpunk2077.txt"
+  content  = "All I need for Christmas is Cyberpunk 2077!"
+}
+
+
+Answer: /root/cyberpunk2077.txt
+
+
+Create a new configuration file within the same directory called xbox.tf. This file should make use of the same local_file resource type with the below requirements:
+
+
+Resource Name: xbox
+
+filename: /root/xbox.txt
+
+content: Wouldn't mind an XBox either!
+
+
+Once the configuration file has been created, use the terraform workflow to create this resource.
+
+
+Created: 
+resource "local_file" "xbox" {
+  filename = "/root/xbox.txt"
+  content = "Wouldn't mind an XBox either!"
+}
+
+
+save and run terraform init:
+
+root@iac-server ~/terraform-projects/christmas-wishlist via 💠 default on ☁️  (us-east-1) ✖ terraform init
+Initializing the backend...
+Initializing provider plugins...
+- Finding latest version of hashicorp/local...
+- Installing hashicorp/local v2.9.0...
+- Installed hashicorp/local v2.9.0 (signed by HashiCorp)
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+terrafrom plan:
+
+root@iac-server ~/terraform-projects/christmas-wishlist via 💠 default on ☁️  (us-east-1) ➜  terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.cyberpunk will be created
+  + resource "local_file" "cyberpunk" {
+      + content              = "All I need for Christmas is Cyberpunk 2077!"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/cyberpunk2077.txt"
+      + id                   = (known after apply)
+    }
+
+  # local_file.ps5 will be created
+  + resource "local_file" "ps5" {
+      + content              = "And a PS5!"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/ps5.txt"
+      + id                   = (known after apply)
+    }
+
+  # local_file.xbox will be created
+  + resource "local_file" "xbox" {
+      + content              = "Wouldn't mind an XBox either!"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/xbox.txt"
+      + id                   = (known after apply)
+    }
+
+Plan: 3 to add, 0 to change, 0 to destroy.
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform
+apply" now.
+
+
+
+root@iac-server ~/terraform-projects/christmas-wishlist via 💠 default on ☁️  (us-east-1) ✖ terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.cyberpunk will be created
+  + resource "local_file" "cyberpunk" {
+      + content              = "All I need for Christmas is Cyberpunk 2077!"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/cyberpunk2077.txt"
+      + id                   = (known after apply)
+    }
+
+  # local_file.ps5 will be created
+  + resource "local_file" "ps5" {
+      + content              = "And a PS5!"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/ps5.txt"
+      + id                   = (known after apply)
+    }
+
+  # local_file.xbox will be created
+  + resource "local_file" "xbox" {
+      + content              = "Wouldn't mind an XBox either!"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/xbox.txt"
+      + id                   = (known after apply)
+    }
+
+Plan: 3 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+local_file.cyberpunk: Creating...
+local_file.ps5: Creating...
+local_file.xbox: Creating...
+local_file.ps5: Creation complete after 0s [id=3622a2c0580ba50d8b91d477679398c46d7199d2]
+local_file.xbox: Creation complete after 0s [id=789dec7aca2183bed759aac5cb38738e91580ff8]
+local_file.cyberpunk: Creation complete after 1s [id=a648192931670dcdb79db0f63a5a0757804b1660]
+
+Apply complete! Resources: 3 added, 0 changed, 0 destroyed.
+
+Now, navigate to the directory /root/terraform-projects/provider-a. We have downloaded a plugin in this directory. Identify the name and type of provider.
+
+If the configuration files in this directory seem unfamiliar, do not worry, these are covered later in the course.
+
+Answer: Partner/linode
+
+Now, navigate to the directory /root/terraform-projects/provider-b. We have downloaded a plugin in this directory. Identify the name and type of provider.
+
+If the configuration files in this directory seem unfamiliar, do not worry, these are covered later in the course.
+
+Answer: i see in the folder "ansible" provider   and in the provider-b.tf : source = "nbering/ansible  - community ansible
+
+////////////////////////////Multiple Providers and resources ////////////
+
+
+resource "random_pet" "bucket_name" {
+  prefix    = "aws_my_bucket"
+  separator = "."
+  length    = 1
+}
+
+resource "aws_s3_bucket" "example" {
+  bucket = random_pet.bucket_name.id
+}
+
+/////////////////////////LAB Multiple Providers //////////////
+
+Can we use multiple providers in the same configuration directory?
+
+A: Yes we can
+
+Please examine the new configuration directory located at /root/terraform-projects/multi-provider. Determine the number of providers that have been initialized within this directory.
+
+Don't run the terraform init command yet!
+
+I see the tf file but seems there not been running yet ,cause the folder does not have any provider yet 
+
+resource "local_file" "pet_name" {
+	    content = "We love pets!"
+	    filename = "/root/pets.txt"
+}
+
+
+resource "local_file" "pet_name" {
+	    content = "We love pets!"
+	    filename = "/root/pets.txt"
+}
+
+
+resource "random_pet" "my-pet" {
+	      prefix = "Mrs"
+	      separator = "."
+	      length = "1"
+}
+
+
+Now, execute the terraform init command and examine the contents of the .terraform/providers directory. Please count the number of plugins that have been downloaded.
+
+
+
+Run Terraform init:
+
+
+root@iac-server ~/terraform-projects/multi-provider via 💠 default on ☁️  (us-east-1) ➜  terraform init
+Initializing the backend...
+Initializing provider plugins...
+- Finding latest version of hashicorp/local...
+- Finding latest version of hashicorp/random...
+- Installing hashicorp/local v2.9.0...
+- Installed hashicorp/local v2.9.0 (signed by HashiCorp)
+- Installing hashicorp/random v3.9.0...
+- Installed hashicorp/random v3.9.0 (signed by HashiCorp)
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+resource "random_pet" "my-pet" {
+	      prefix = "Mrs"
+	      separator = "."
+	      length = "1"
+}
+
+Answer : Now at .terraform/providers has "local" and "random" provider
+So two plugins now available
+
+
+
+Navigate to the directory /root/terraform-projects/MPL.
+
+Create a new Terraform configuration file named pet-name.tf with the following requirements:
+
+local_file Resource
+Resource name: my-pet
+filename: /root/pet-name
+content: My pet is called finnegan!!
+random_pet Resource
+Resource name: other-pet
+length: 1
+prefix: Mr
+separator: .
+
+Instructions:
+
+Create a file named pet-name.tf that includes both resources as outlined above.
+Navigate to the /root/terraform-projects/MPL directory and execute the following commands in sequence: terraform init, terraform plan, and then terraform apply to provision the resources.
+Note:
+
+Ensure that you use the exact resource names and attribute values as specified.
+Confirm that the file is correctly named pet-name.tf.
+
+Created pet-name.tf with the next content:
+
+resource "local_file" "my-pet" {
+    filename = "/root/pet-name.txt"
+    content = "My pet is called finnegan!!"
+}
+
+resource "random_pet" "other-pet" {
+    length = 1
+    prefix = "Mr"
+    separator = "."
+}
+
+terrafrom plan:
+
+root@iac-server ~/terraform-projects/MPL via 💠 default on ☁️  (us-east-1) ➜  terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.my-pet will be created
+  + resource "local_file" "my-pet" {
+      + content              = "My pet is called finnegan!!"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/pet-name.txt"
+      + id                   = (known after apply)
+    }
+
+  # random_pet.other-pet will be created
+  + resource "random_pet" "other-pet" {
+      + id        = (known after apply)
+      + length    = 1
+      + prefix    = "Mr"
+      + separator = "."
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform
+apply" now.
+
+
+>terrafrom apply
+
+
+root@iac-server ~/terraform-projects/MPL via 💠 default on ☁️  (us-east-1) ✖ terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.my-pet will be created
+  + resource "local_file" "my-pet" {
+      + content              = "My pet is called finnegan!!"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/pet-name.txt"
+      + id                   = (known after apply)
+    }
+
+  # random_pet.other-pet will be created
+  + resource "random_pet" "other-pet" {
+      + id        = (known after apply)
+      + length    = 1
+      + prefix    = "Mr"
+      + separator = "."
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+random_pet.other-pet: Creating...
+local_file.my-pet: Creating...
+random_pet.other-pet: Creation complete after 0s [id=Mr.python]
+local_file.my-pet: Creation complete after 0s [id=9874dce72f896b8152fd9d41d11d44fae6c4127f]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+
+See there: id=Mr.python
+
+it can be used (this random generated name) for tagging,example:
+
+resource "aws_instance" "web" {
+  ami           = "ami-123"
+  instance_type = "t2.micro"
+  tags = {
+    Name = random_pet.other-pet.id
+  }
+}
+
+
+Examples:
+
+1. Name AWS resources
+S3 buckets must be globally unique, so this is perfect:
+
+hcl
+resource "aws_s3_bucket" "example" {
+  bucket = random_pet.other-pet.id
+}
+Creates a bucket like:
+
+Code
+mr.python
+2. Name EC2 instances
+hcl
+resource "aws_instance" "web" {
+  ami           = "ami-123"
+  instance_type = "t2.micro"
+  tags = {
+    Name = random_pet.other-pet.id
+  }
+}
+Your EC2 instance shows up in AWS as:
+
+Code
+mr.python
+3. Name Docker containers
+hcl
+resource "docker_container" "app" {
+  name  = random_pet.other-pet.id
+  image = "nginx"
+}
+4. Generate filenames
+hcl
+resource "local_file" "log" {
+  filename = "/tmp/${random_pet.other-pet.id}.txt"
+  content  = "Hello"
+}
+Creates:
+
+Code
+/tmp/Mr.python.txt
+5. Tagging resources
+hcl
+tags = {
+  owner = random_pet.other-pet.id
+}
+6. Create unique prefixes for environments
+hcl
+locals {
+  env_prefix = random_pet.other-pet.id
+}
+Then use it everywhere:
+
+Code
+"${local.env_prefix}-db"
+"${local.env_prefix}-vpc"
+7. Output it to the console
+hcl
+output "pet_name" {
+  value = random_pet.other-pet.id
+}
+After apply:
+
+Code
+pet_name = "Mr.python"
+
+Please change into the directory /root/terraform-projects/provider and examine the file cloud-provider.tf. What is the instance_type configured for the resource type aws_instance?
+
+Don't worry if you are not familiar with the aws providers. We will cover it later on.
+
+root@iac-server ~/terraform-projects/provider via 💠 default on ☁️  (us-east-1) ➜  ls
+cloud-provider.tf  kube.tf
+
+
+resource "aws_instance" "ec2_instance" {
+	  ami       =  "ami-0eda277a0b884c5ab" 
+	  instance_type = "t2.large"
+}
+
+
+resource "aws_ebs_volume" "ec2_volume" {
+	  availability_zone = "eu-west-1"
+	  size  =    10
+}
+
+Answr: instance_type = "t2.large"
+
+
+What is the name of the resource configured with the resource type kubernetes_namespace in kube.tf file within the same directory?
+
+resource "local_file" "data" {
+	filename = "/root/k8s.txt"
+	content = "kubernetes the hard way!"
+}
+
+
+resource "kubernetes_namespace" "dev" {
+  metadata {
+    name = "development"
+  }
+}
+
+Answer: "dev"
+
+
+Please proceed to the directory path /root/terraform-projects/provider-a and create a configuration file named code.tf.
+
+In this file, utilize the local_file resource type to write a resource block that adheres to the following specifications:
+
+Resource name: iac_code
+File name: /opt/practice
+Content: Setting up infrastructure as code
+
+When you are prepared, please execute only the terraform init command. We will execute the terraform apply command at a later stage.
+
+created a file code.tf
+
+resource "local_file" "iac_code" {
+    filename = "/opt/practice"
+    content = "Setting up infrastructure as code"
+}
+
+And run only terraform init:
+
+root@iac-server ~/terraform-projects/provider-a on ☁️  (us-east-1) ➜  terraform init
+Initializing the backend...
+Initializing provider plugins...
+- Finding latest version of hashicorp/local...
+- Installing hashicorp/local v2.9.0...
+- Installed hashicorp/local v2.9.0 (signed by HashiCorp)
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+
+We have made some changes to the configuration file. Are you able to run terraform apply command?
+
+I have tried , terrafrom apply and gt this:
+
+root@iac-server ~/terraform-projects/provider-a via 💠 default on ☁️  (us-east-1) ➜  terraform plan
+╷
+│ Error: Inconsistent dependency lock file
+│ 
+│ The following dependency selections recorded in the lock file are inconsistent with the current configuration:
+│   - provider registry.terraform.io/hashicorp/random: required by this configuration but no version is selected
+│ 
+│ To update the locked dependency selections to match a changed configuration, run:
+│   terraform init -upgrade
+
+Look the file and see they made next changes:
+
+resource "local_file" "iac_code" {
+	  filename = "/opt/practice"
+	  content = "Setting up infrastructure as code"
+}
+
+
+resource "random_string" "iac_random" {
+  length = 10
+  min_upper = 5
+}
+
+Do not know if this correct yet so answerr is NO - which mean plan failed to run
+
+
+
+Whenever a resource for a provider that has not yet been utilized in the configuration directory is added, it is necessary to initialize the directory by executing the terraform init command.
+
+Please proceed by running the terraform init command, followed by the terraform apply command.
+
+
+Run init cause provider which been added should be initialized:
+
+root@iac-server ~/terraform-projects/provider-a via 💠 default on ☁️  (us-east-1) ✖ terraform init
+Initializing the backend...
+Initializing provider plugins...
+- Reusing previous version of hashicorp/local from the dependency lock file
+- Finding latest version of hashicorp/random...
+- Using previously-installed hashicorp/local v2.9.0
+- Installing hashicorp/random v3.9.0...
+- Installed hashicorp/random v3.9.0 (signed by HashiCorp)
+Terraform has made some changes to the provider dependency selections recorded
+in the .terraform.lock.hcl file. Review those changes and commit them to your
+version control system if they represent changes you intended to make.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+root@iac-server ~/terraform-projects/provider-a via 💠 default on ☁️  (us-east-1) ➜  
+
+PLAN:
+
+root@iac-server ~/terraform-projects/provider-a via 💠 default on ☁️  (us-east-1) ➜  terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.iac_code will be created
+  + resource "local_file" "iac_code" {
+      + content              = "Setting up infrastructure as code"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/opt/practice"
+      + id                   = (known after apply)
+    }
+
+  # random_string.iac_random will be created
+  + resource "random_string" "iac_random" {
+      + id          = (known after apply)
+      + length      = 10
+      + lower       = true
+      + min_lower   = 0
+      + min_numeric = 0
+      + min_special = 0
+      + min_upper   = 5
+      + number      = true
+      + numeric     = true
+      + result      = (known after apply)
+      + special     = true
+      + upper       = true
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform
+apply" now.
+
+APPLY:
+
+root@iac-server ~/terraform-projects/provider-a via 💠 default on ☁️  (us-east-1) ➜  terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.iac_code will be created
+  + resource "local_file" "iac_code" {
+      + content              = "Setting up infrastructure as code"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/opt/practice"
+      + id                   = (known after apply)
+    }
+
+  # random_string.iac_random will be created
+  + resource "random_string" "iac_random" {
+      + id          = (known after apply)
+      + length      = 10
+      + lower       = true
+      + min_lower   = 0
+      + min_numeric = 0
+      + min_special = 0
+      + min_upper   = 5
+      + number      = true
+      + numeric     = true
+      + result      = (known after apply)
+      + special     = true
+      + upper       = true
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+random_string.iac_random: Creating...
+local_file.iac_code: Creating...
+random_string.iac_random: Creation complete after 0s [id=XOCJOCeBpE]
+local_file.iac_code: Creation complete after 0s [id=11bd49955f5aed77659cbc4e125e2f88a78ee1e5]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+
+
+to get the random strin to the output:
+
+output "iac_random_value" {
+  value = random_string.iac_random.result
+}
+
+now when we run init,plan and apply we will see:
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+iac_random_value = "XOCJOCeBpE"
+
+
+Correct way: output multiple values using a map
+add this to the file:
+
+output "iac_random_values" {
+  value = {
+    result = random_string.iac_random.result
+    id     = random_string.iac_random.id
+  }
+}
+
+run terraform init,plan,apply:
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+iac_random_values = {
+  "id" = "XOCJOCeBpE"
+  "result" = "XOCJOCeBpE"
+}
+
+

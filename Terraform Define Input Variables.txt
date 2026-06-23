@@ -322,10 +322,89 @@ resource "local_file" "jedi" {
 
 
 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+Variable Definition Precedence in Terraform
+Terraform allows variables to be defined in multiple places, but when the same variable is set in more than one location, Terraform follows a strict order of precedence to decide which value to use.
+
+Code setup
+main.tf
+hcl
+resource "local_file" "pet" {
+  filename = var.filename
+}
+variables.tf
+hcl
+variable "filename" {
+  type = string
+}
+These files define a resource that writes to a file, and a variable named filename whose value will be provided externally.
 
 
 
+Ways to define variable values
+Terraform can get the value for filename from several sources:
+
+Source	Example	Description
+Command line flag	terraform apply -var "filename=/root/best-pet.txt"	Highest precedence — overrides all other sources.
+Environment variable	export TF_VAR_filename="/root/cats.txt"	Second highest — used if no CLI flag is provided.
+terraform.tfvars	filename = "/root/pets.txt"	Automatically loaded if present.
+variable.auto.tfvars	filename = "/root/mypet.txt"	Automatically loaded, same level as .tfvars.
+Default value in variable block	default = "/root/default.txt"	Lowest precedence — used only if nothing else is provided.
+
+/////////////////////////LAB ////////////
+
+
+How can we pass an input variable value to Terraform using an environment variable on the command line?
+
+Answer: export TF_VAR_<variable_name>=<value>
+
+Which of the following has the highest priority when defining variable values in Terraform?
+
+If unsure, Refer to the documentation. Documentation tab is available at the top right.
+
+Anser: command line flag with -var or -var-file
+
+
+Which one of the following commands is a valid way to make use of a custom variable file with the terraform apply command?
+
+>terraform apply -var-file variables.tfvars
 
 
 
+We have created some files under the directory /root/terraform-projects/variables. Inspect it.
+
+What will happen if we run terraform plan command right now?
+
+Try it.
+
+
+varibale.tf
+
+variable "filename" {
+  type = string
+} 
+
+Now terraform.tfvars
+
+filename = "/root/football.txt"
+
+Now main.tf:
+
+resource local_file games {
+  filename = var.filename
+  content = "football"
+}
+
+
+If we run terraform apply with a -var command line flag as shown below, which value would be considered by terraform?
+
+terraform apply -var filename=/root/tennis.txt
+
+Answer: /root/tennis.txt
+
+
+Terraform follows a variable definition precedence order to determine the value and
+the command line flag of –var or –var-file takes the highest priority.
 

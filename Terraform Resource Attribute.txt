@@ -1,0 +1,988 @@
+Resource Attribute     - LAB
+
+
+Navigate to the configuration directory /root/terraform-projects/project-chronos and inspect the files created inside.
+
+What is the resource_type of the resource that's currently defined in the main.tf file?
+
+If unsure, refer to the documentation. Documentation tab is available at the top right panel.
+
+ resource "time_static" "time_update" {
+}
+
+Answer: time_static
+
+
+As you can see, the resource block is empty. This is because time_static does not need any arguments to be supplied to work.
+
+When applied as it is, terraform creates a logical resource locally (similar to random_pet) with the current time.
+
+
+
+Which of the following attributes are exported by the time_static resource?
+
+If unsure, refer to the documentation. Documentation tab is available at the top right panel.
+
+Answer:
+
+Read-Only
+day (Number) Number day of timestamp.
+hour (Number) Number hour of timestamp.
+id (String) RFC3339 format of the offset timestamp, e.g. 2020-02-12T06:36:13Z.
+minute (Number) Number minute of timestamp.
+month (Number) Number month of timestamp.
+second (Number) Number second of timestamp.
+unix (Number) Number of seconds since epoch time, e.g. 1581489373.
+year (Number) Number year of timestamp.
+Import
+
+
+How do we refer to the attribute called id using a reference expression?
+
+Answer:
+
+output "current_time" {
+  value = time_static.time_update.id
+}
+
+
+ow, update the main.tf file and add a new local_file resource called time with the following requirements:
+
+filename: /root/time.txt
+content: Time stamp of this file is <id from time_update resource>
+
+
+Use a reference expression and interpolation.
+
+When ready, run terraform init, plan and apply.
+
+
+ resource "time_static" "time_update" {
+}
+
+
+resource "local_file" "time" {
+    filename = "/root/time.txt"
+    content = "Time stamp of this file is ${time_static.time_update.id}"
+}
+
+Init,Plan,Apply:
+
+root@iac-server ~/terraform-projects/project-chronos via 💠 default on ☁️  (us-east-1) ✖ terraform init
+Initializing the backend...
+Initializing provider plugins...
+- Finding latest version of hashicorp/time...
+- Finding latest version of hashicorp/local...
+- Installing hashicorp/local v2.9.0...
+- Installed hashicorp/local v2.9.0 (signed by HashiCorp)
+- Installing hashicorp/time v0.14.0...
+- Installed hashicorp/time v0.14.0 (signed by HashiCorp)
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+root@iac-server ~/terraform-projects/project-chronos via 💠 default on ☁️  (us-east-1) ➜  terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.time will be created
+  + resource "local_file" "time" {
+      + content              = (known after apply)
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/time.txt"
+      + id                   = (known after apply)
+    }
+
+  # time_static.time_update will be created
+  + resource "time_static" "time_update" {
+      + day     = (known after apply)
+      + hour    = (known after apply)
+      + id      = (known after apply)
+      + minute  = (known after apply)
+      + month   = (known after apply)
+      + rfc3339 = (known after apply)
+      + second  = (known after apply)
+      + unix    = (known after apply)
+      + year    = (known after apply)
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform
+apply" now.
+
+root@iac-server ~/terraform-projects/project-chronos via 💠 default on ☁️  (us-east-1) ➜  terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.time will be created
+  + resource "local_file" "time" {
+      + content              = (known after apply)
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/time.txt"
+      + id                   = (known after apply)
+    }
+
+  # time_static.time_update will be created
+  + resource "time_static" "time_update" {
+      + day     = (known after apply)
+      + hour    = (known after apply)
+      + id      = (known after apply)
+      + minute  = (known after apply)
+      + month   = (known after apply)
+      + rfc3339 = (known after apply)
+      + second  = (known after apply)
+      + unix    = (known after apply)
+      + year    = (known after apply)
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+time_static.time_update: Creating...
+time_static.time_update: Creation complete after 0s [id=2026-06-24T12:28:29Z]
+local_file.time: Creating...
+local_file.time: Creation complete after 0s [id=18c380fd77710551ec3b451f113624e89cde3923]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+root@iac-server ~/terraform-projects/project-chronos via 💠 default on ☁️  (us-east-1) ➜  
+
+We got a new file "time.txt" with: Time stamp of this file is 2026-06-24T12:28:29Z
+
+
+What is the attribute called id that is created for the local file resource called time?
+
+Make use of the terraform show command and identify the attribute values.
+
+
+>terraform show
+
+
+root@iac-server ~/terraform-projects/project-chronos via 💠 default on ☁️  (us-east-1) ➜  terraform show
+# local_file.time:
+resource "local_file" "time" {
+    content              = "Time stamp of this file is 2026-06-24T12:28:29Z"
+    content_base64sha256 = "juLDhxHl0mIPW7JieXkdN4yRjM992s8NqmgkrUn699w="
+    content_base64sha512 = "yBF9/L/FRtVq2TgkwQD6StXX0Mxt5YuEjy6BxOCXUfIZuodsDjB2aeQ8Pm5VIsywx5q1QX4QUxQ6XdwDJxJnzA=="
+    content_md5          = "8379aa6796cc241dd537058f520755cf"
+    content_sha1         = "18c380fd77710551ec3b451f113624e89cde3923"
+    content_sha256       = "8ee2c38711e5d2620f5bb26279791d378c918ccf7ddacf0daa6824ad49faf7dc"
+    content_sha512       = "c8117dfcbfc546d56ad93824c100fa4ad5d7d0cc6de58b848f2e81c4e09751f219ba876c0e307669e43c3e6e5522ccb0c79ab5417e1053143a5ddc03271267cc"
+    directory_permission = "0777"
+    file_permission      = "0777"
+    filename             = "/root/time.txt"
+    id                   = "18c380fd77710551ec3b451f113624e89cde3923"
+}
+
+# time_static.time_update:
+resource "time_static" "time_update" {
+    day     = 24
+    hour    = 12
+    id      = "2026-06-24T12:28:29Z"
+    minute  = 28
+    month   = 6
+    rfc3339 = "2026-06-24T12:28:29Z"
+    second  = 29
+    unix    = 1782304109
+    year    = 2026
+}
+
+Answer: id                   = "18c380fd77710551ec3b451f113624e89cde3923"    - see the local_file resource 
+
+
+
+What is the attribute called rfc3339 that is created for the time_static resource called time_update?
+
+Make use of the terraform show command and identify the attribute values.
+
+
+>terraform show
+
+# time_static.time_update:
+resource "time_static" "time_update" {
+    day     = 24
+    hour    = 12
+    id      = "2026-06-24T12:28:29Z"
+    minute  = 28
+    month   = 6
+    rfc3339 = "2026-06-24T12:28:29Z"
+    second  = 29
+    unix    = 1782304109
+    year    = 2026
+}
+
+Anwser: rfc3339 = "2026-06-24T12:28:29Z"
+
+/////////////////////// Resource Dependencies ////////////
+
+
+What an explicit dependency is
+Terraform normally figures out dependencies automatically by analyzing references between resources.
+But sometimes you need to force Terraform to wait for something even if there is no direct reference.
+
+That’s where depends_on comes in.
+
+You add a depends_on block inside a resource, module, or output.
+
+Example:
+
+resource "aws_iam_role" "example" {
+  name = "my-role"
+}
+
+resource "aws_lambda_function" "example" {
+  function_name = "my-func"
+  handler       = "index.handler"
+  runtime       = "nodejs18.x"
+
+  depends_on = [
+    aws_iam_role.example
+  ]
+}
+
+
+You use depends_on when:
+
+Implicit dependencies don’t exist
+
+A resource depends on side effects (e.g., IAM policies, permissions)
+
+A module must wait for another module
+
+You need to enforce a creation order for safety or correctness
+
+You want to avoid race conditions in cloud providers
+
+Explicit dependency on modules
+You can also apply it to modules:
+
+module "network" {
+  source = "./network"
+}
+
+module "servers" {
+  source = "./servers"
+
+  depends_on = [
+    module.network
+  ]
+}
+
+///////////////////////////LAB //////////////////
+
+Which argument should be used to explicitly set dependencies for a resource?
+
+Answer: depends_on
+
+Resource A relies on another Resource B but doesn't access any of its attributes in its own arguments. What is this type of dependency called?
+
+Answer: explicit dependency
+
+Resource A relies on another Resource B but doesn't access any of its attributes in its own arguments. What is this type of dependency called?
+
+Answer: reference expression
+
+
+
+In the configuration directory /root/terraform-projects/key-generator, create a file called key.tf with the following specifications:
+
+
+Resource Type: tls_private_key
+
+Resource Name: pvtkey
+
+algorithm: RSA
+
+rsa_bits: 4096
+
+
+When ready, run terraform init, plan and apply.
+
+If unsure, refer to the documentation.
+
+I have created: resource "tls_private_key" "pvtkey" {
+  algorithm = "RSA"
+  rsa_bits = 4096
+}
+
+and run init,plan,apply:
+
+root@iac-server ~/terraform-projects/key-generator via 💠 default on ☁️  (us-east-1) ➜  terraform init
+Initializing the backend...
+Initializing provider plugins...
+- Finding latest version of hashicorp/tls...
+- Installing hashicorp/tls v4.3.0...
+- Installed hashicorp/tls v4.3.0 (signed by HashiCorp)
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+root@iac-server ~/terraform-projects/key-generator via 💠 default on ☁️  (us-east-1) ➜  terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # tls_private_key.pvtkey will be created
+  + resource "tls_private_key" "pvtkey" {
+      + algorithm                     = "RSA"
+      + ecdsa_curve                   = "P224"
+      + id                            = (known after apply)
+      + private_key_openssh           = (sensitive value)
+      + private_key_pem               = (sensitive value)
+      + private_key_pem_pkcs8         = (sensitive value)
+      + public_key_fingerprint_md5    = (known after apply)
+      + public_key_fingerprint_sha256 = (known after apply)
+      + public_key_openssh            = (known after apply)
+      + public_key_pem                = (known after apply)
+      + rsa_bits                      = 4096
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform
+apply" now.
+
+root@iac-server ~/terraform-projects/key-generator via 💠 default on ☁️  (us-east-1) ➜  terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # tls_private_key.pvtkey will be created
+  + resource "tls_private_key" "pvtkey" {
+      + algorithm                     = "RSA"
+      + ecdsa_curve                   = "P224"
+      + id                            = (known after apply)
+      + private_key_openssh           = (sensitive value)
+      + private_key_pem               = (sensitive value)
+      + private_key_pem_pkcs8         = (sensitive value)
+      + public_key_fingerprint_md5    = (known after apply)
+      + public_key_fingerprint_sha256 = (known after apply)
+      + public_key_openssh            = (known after apply)
+      + public_key_pem                = (known after apply)
+      + rsa_bits                      = 4096
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+tls_private_key.pvtkey: Creating...
+tls_private_key.pvtkey: Creation complete after 2s [id=648c8093edcd4ec370b6f4d25a0c56a11c4aa265]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+Resource tls_private_key generates a secure private key and encodes it as PEM. It is a logical resource that lives only in the terraform state.
+
+You can see the details of the resource, including the private key by running the terraform show command.
+
+You can read the documentation for more details. https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key
+
+root@iac-server ~/terraform-projects/key-generator via 💠 default on ☁️  (us-east-1) ✖ terraform show
+# tls_private_key.pvtkey:
+resource "tls_private_key" "pvtkey" {
+    algorithm                     = "RSA"
+    ecdsa_curve                   = "P224"
+    id                            = "648c8093edcd4ec370b6f4d25a0c56a11c4aa265"
+    private_key_openssh           = (sensitive value)
+    private_key_pem               = (sensitive value)
+    private_key_pem_pkcs8         = (sensitive value)
+    public_key_fingerprint_md5    = "f3:90:5f:f4:cb:30:c9:73:b6:a4:71:58:d2:b6:32:c3"
+    public_key_fingerprint_sha256 = "SHA256:PYFIsDQlUYUdFTmlZmV+rQMNrCyHEaaGl+OkM8RYgos"
+    public_key_openssh            = <<-EOT
+        ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCkr0jxJEGKSYG0HMC5h9lCC9ESykpAoyxwr6MSh34p36LH9IYUVsqRrUvEPVECORIAJM5MOLd7UBR2J1Tga7/FvrSZDpEb9PkY6hmh8cufGbpZ7p4pKCszhw3ulMGt5t0p2IsyWBgVAR2IfKUDjXxQ/T+FBHNnwBec4Rt6p/Dw/0J7uluA4Imxpte0KiKpANo9jbRnZN9URaEzfOuMVEXjztjIzY1mQAu3sNs9RuImQVBtLB4FD4BR/7EaR5oZtoE2s7HQwLcvO6hJwlhGxD2qwGayn8fJ7DOhEWb9s6MVjeICCA48imzMho9SvjfXnfMavESPitJ+9p/FAN9f/dv9FCmVhQgg5LjNP9H08etClW5/CsciZXpTWwGip2anGAdf4e9jT1hOYeOqjo2uHjYtt1Ag/pB/NNhBhz4VFT0mEaRaaYCUI/AX2O7fS1GbmGB6MOmp4nAv5e4/7AA7rvdXlZvwsS9dzo8Ws70EeZhp4rtCkTyb703MlD7RojDuw1EYER+eKjtziRouu3x8eI6uZ7fjbPFKllvsxrTQyrxXoA2l1Joed14OJErrKcKzhg4mrULF0Phd6NoGFyASsp9klAvMAC4pFBsB7VOTr4W86P4wCoDUl9ymoWFqCajvKxTa78fo8y8mgQsoMpFa4kd9JQc6xlLqSBrG+YzY7XfTvw==
+    EOT
+    public_key_pem                = <<-EOT
+        -----BEGIN PUBLIC KEY-----
+        MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEApK9I8SRBikmBtBzAuYfZ
+        QgvREspKQKMscK+jEod+Kd+ix/SGFFbKka1LxD1RAjkSACTOTDi3e1AUdidU4Gu/
+        xb60mQ6RG/T5GOoZofHLnxm6We6eKSgrM4cN7pTBrebdKdiLMlgYFQEdiHylA418
+        UP0/hQRzZ8AXnOEbeqfw8P9Ce7pbgOCJsabXtCoiqQDaPY20Z2TfVEWhM3zrjFRF
+        487YyM2NZkALt7DbPUbiJkFQbSweBQ+AUf+xGkeaGbaBNrOx0MC3LzuoScJYRsQ9
+        qsBmsp/HyewzoRFm/bOjFY3iAggOPIpszIaPUr43153zGrxEj4rSfvafxQDfX/3b
+        /RQplYUIIOS4zT/R9PHrQpVufwrHImV6U1sBoqdmpxgHX+HvY09YTmHjqo6Nrh42
+        LbdQIP6QfzTYQYc+FRU9JhGkWmmAlCPwF9ju30tRm5hgejDpqeJwL+XuP+wAO673
+        V5Wb8LEvXc6PFrO9BHmYaeK7QpE8m+9NzJQ+0aIw7sNRGBEfnio7c4kaLrt8fHiO
+        rme342zxSpZb7Ma00Mq8V6ANpdSaHndeDiRK6ynCs4YOJq1CxdD4XejaBhcgErKf
+        ZJQLzAAuKRQbAe1Tk6+FvOj+MAqA1JfcpqFhagmo7ysU2u/H6PMvJoELKDKRWuJH
+        fSUHOsZS6kgaxvmM2O13078CAwEAAQ==
+        -----END PUBLIC KEY-----
+    EOT
+    rsa_bits                      = 4096
+}
+
+
+
+Now, let's use the private key created by this resource in another resource of type local file. Update the key.tf file with the requirements:
+
+
+Resource Name: key_details
+
+File Name: /root/key.txt
+
+Content: use a reference expression to use the attribute called private_key_pem of the pvtkey resource.
+
+
+When ready, run terraform init, plan and apply.
+
+Created this:
+
+resource "tls_private_key" "pvtkey" {
+  algorithm = "RSA"
+  rsa_bits = 4096
+}
+
+resource "local_file" "key_details" {
+  content = tls_private_key.pvtkey.private_key_pem
+  filename = "/root/key.txt"
+}
+
+after run Init,Plan,Apply been creaeted the text file "key.txt" with the next content:
+
+-----BEGIN RSA PRIVATE KEY-----
+MIIJKAIBAAKCAgEApK9I8SRBikmBtBzAuYfZQgvREspKQKMscK+jEod+Kd+ix/SG
+FFbKka1LxD1RAjkSACTOTDi3e1AUdidU4Gu/xb60mQ6RG/T5GOoZofHLnxm6We6e
+KSgrM4cN7pTBrebdKdiLMlgYFQEdiHylA418UP0/hQRzZ8AXnOEbeqfw8P9Ce7pb
+gOCJsabXtCoiqQDaPY20Z2TfVEWhM3zrjFRF487YyM2NZkALt7DbPUbiJkFQbSwe
+BQ+AUf+xGkeaGbaBNrOx0MC3LzuoScJYRsQ9qsBmsp/HyewzoRFm/bOjFY3iAggO
+PIpszIaPUr43153zGrxEj4rSfvafxQDfX/3b/RQplYUIIOS4zT/R9PHrQpVufwrH
+ImV6U1sBoqdmpxgHX+HvY09YTmHjqo6Nrh42LbdQIP6QfzTYQYc+FRU9JhGkWmmA
+lCPwF9ju30tRm5hgejDpqeJwL+XuP+wAO673V5Wb8LEvXc6PFrO9BHmYaeK7QpE8
+m+9NzJQ+0aIw7sNRGBEfnio7c4kaLrt8fHiOrme342zxSpZb7Ma00Mq8V6ANpdSa
+-----END RSA PRIVATE KEY-----
+
+
+Now destroy these two resources.
+
+>terrafrom destroy   - will destroy key.txt file (will deleted it)
+
+
+For the next question, navigate to the directory /root/terraform-projects/explicit-dependency.
+
+
+Explicit task:
+
+
+Within this directory, create two local_file type resources in main.tf file.
+
+
+Resource 1:
+
+Resource Name: whale
+
+File Name: /root/whale
+
+content: whale
+
+
+Resource 2:
+
+Resource Name: krill
+
+File Name: /root/krill
+
+content: krill
+
+
+Resource called whale should depend on krill but do not use reference expressions.
+
+
+When ready, run terraform init, plan and apply.
+
+
+resource "local_file" "whale" {
+  filename = "/root/whale"
+  content = "whale"
+  depends_on = [ local_file.krill ]
+}
+
+resource "local_file" "krill" {
+  filename = "/root/krill"
+  content = "krill"
+}
+
+and run init,plan,apply:
+
+
+root@iac-server ~/terraform-projects/explicit-dependency via 💠 default on ☁️  (us-east-1) ➜  terraform init
+Initializing the backend...
+Initializing provider plugins...
+- Finding latest version of hashicorp/local...
+- Installing hashicorp/local v2.9.0...
+- Installed hashicorp/local v2.9.0 (signed by HashiCorp)
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+root@iac-server ~/terraform-projects/explicit-dependency via 💠 default on ☁️  (us-east-1) ➜  terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.krill will be created
+  + resource "local_file" "krill" {
+      + content              = "krill"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/krill"
+      + id                   = (known after apply)
+    }
+
+  # local_file.whale will be created
+  + resource "local_file" "whale" {
+      + content              = "whale"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/whale"
+      + id                   = (known after apply)
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform
+apply" now.
+
+root@iac-server ~/terraform-projects/explicit-dependency via 💠 default on ☁️  (us-east-1) ➜  terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # local_file.krill will be created
+  + resource "local_file" "krill" {
+      + content              = "krill"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/krill"
+      + id                   = (known after apply)
+    }
+
+  # local_file.whale will be created
+  + resource "local_file" "whale" {
+      + content              = "whale"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/root/whale"
+      + id                   = (known after apply)
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+local_file.krill: Creating...
+local_file.krill: Creation complete after 0s [id=893a03dee4098efabc1d4a97a2fd6cc568ff731c]
+local_file.whale: Creating...
+local_file.whale: Creation complete after 0s [id=1769e230f7885e9153bb0e4fe515ee1d08fdab0b]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+//////////////////////Output variables /////////
+
+
+Outputs:
+
+output "public_ip" {
+  value = aws_instance.server.public_ip
+}
+Terraform’s memory of what exists.
+This is why commands like terraform show matter.
+
+Example: 
+
+output "public_ip" {
+  value = aws_instance.server.public_ip
+}
+
+After terraform apply, Terraform prints:
+public_ip = 54.123.45.67
+
+
+
+Viewing outputs without applying
+
+terraform output
+Or a specific one:
+
+Code
+terraform output public_ip
+Or in JSON (for automation):
+
+Code
+terraform output -json
+
+/////////////////////////////LAB Outputs /////////
+
+Navigate to the directory called /root/terraform-projects/data. We have used the configuration files created in this directory to create some resources. Inspect them.
+
+Which provider is used by the configuration files in this directory?
+
+resource "random_uuid" "id1" {
+   
+}
+resource "random_uuid" "id2" {
+   
+}
+resource "random_uuid" "id3" {
+   
+}
+
+Answer: random
+
+Which two resource types are configured in the configuration files?
+
+resource "random_uuid" "id1" {
+   
+}
+
+resource "random_integer" "order2" {
+  min     = 1
+  max     = 222222
+ 
+}
+
+Answer: random_uuid and random_integer
+
+We also defined a few output variables in the output.tf file in this configuration directory. Inspect them.
+
+Run terraform init, plan and apply to create these resources.
+
+root@iac-server ~/terraform-projects/data via 💠 default on ☁️  (us-east-1) ➜  terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # random_integer.order1 will be created
+  + resource "random_integer" "order1" {
+      + id     = (known after apply)
+      + max    = 99999
+      + min    = 1
+      + result = (known after apply)
+    }
+
+  # random_integer.order2 will be created
+  + resource "random_integer" "order2" {
+      + id     = (known after apply)
+      + max    = 222222
+      + min    = 1
+      + result = (known after apply)
+    }
+
+  # random_uuid.id1 will be created
+  + resource "random_uuid" "id1" {
+      + id     = (known after apply)
+      + result = (known after apply)
+    }
+
+  # random_uuid.id2 will be created
+  + resource "random_uuid" "id2" {
+      + id     = (known after apply)
+      + result = (known after apply)
+    }
+
+  # random_uuid.id3 will be created
+  + resource "random_uuid" "id3" {
+      + id     = (known after apply)
+      + result = (known after apply)
+    }
+
+  # random_uuid.id4 will be created
+  + resource "random_uuid" "id4" {
+      + id     = (known after apply)
+      + result = (known after apply)
+    }
+
+  # random_uuid.id5 will be created
+  + resource "random_uuid" "id5" {
+      + id     = (known after apply)
+      + result = (known after apply)
+    }
+
+  # random_uuid.id6 will be created
+  + resource "random_uuid" "id6" {
+      + id     = (known after apply)
+      + result = (known after apply)
+    }
+
+  # random_uuid.id7 will be created
+  + resource "random_uuid" "id7" {
+      + id     = (known after apply)
+      + result = (known after apply)
+    }
+
+Plan: 9 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + id1    = (known after apply)
+  + id2    = (known after apply)
+  + id3    = (known after apply)
+  + id4    = (known after apply)
+  + id5    = (known after apply)
+  + id6    = (known after apply)
+  + id7    = (known after apply)
+  + order1 = (known after apply)
+  + order2 = (known after apply)
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+random_uuid.id7: Creating...
+random_uuid.id6: Creating...
+random_uuid.id4: Creating...
+random_uuid.id3: Creating...
+random_uuid.id1: Creating...
+random_uuid.id5: Creating...
+random_integer.order2: Creating...
+random_integer.order1: Creating...
+random_uuid.id2: Creating...
+random_uuid.id6: Creation complete after 0s [id=21654adf-21ff-cdb3-477a-e3df132d357b]
+random_uuid.id7: Creation complete after 0s [id=942ee3b9-1c4d-b2da-1b4e-60d86765c4db]
+random_uuid.id1: Creation complete after 0s [id=26810f57-98ed-2812-954b-0e3f40bea62d]
+random_uuid.id5: Creation complete after 0s [id=9b1cbcc5-18f2-183d-7132-11898d8026a3]
+random_uuid.id3: Creation complete after 0s [id=492b6649-acba-5fa6-d0a3-14530f336314]
+random_uuid.id2: Creation complete after 0s [id=aaa9f8d3-6b5f-907a-cf28-6d10f9aa361b]
+random_uuid.id4: Creation complete after 0s [id=4599a64e-1467-9361-8203-034b82c14a36]
+random_integer.order1: Creation complete after 0s [id=84948]
+random_integer.order2: Creation complete after 0s [id=92574]
+
+Apply complete! Resources: 9 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+id1 = "26810f57-98ed-2812-954b-0e3f40bea62d"
+id2 = "aaa9f8d3-6b5f-907a-cf28-6d10f9aa361b"
+id3 = "492b6649-acba-5fa6-d0a3-14530f336314"
+id4 = "4599a64e-1467-9361-8203-034b82c14a36"
+id5 = "9b1cbcc5-18f2-183d-7132-11898d8026a3"
+id6 = "21654adf-21ff-cdb3-477a-e3df132d357b"
+id7 = "942ee3b9-1c4d-b2da-1b4e-60d86765c4db"
+order1 = 84948
+order2 = 84948
+
+
+What is the value of the output variable called id2 ?
+
+Use the terraform output command.
+
+root@iac-server ~/terraform-projects/data via 💠 default on ☁️  (us-east-1) ➜  terraform output id2
+"aaa9f8d3-6b5f-907a-cf28-6d10f9aa361b"
+
+To see all output variables :
+
+root@iac-server ~/terraform-projects/data via 💠 default on ☁️  (us-east-1) ➜  terraform output
+id1 = "26810f57-98ed-2812-954b-0e3f40bea62d"
+id2 = "aaa9f8d3-6b5f-907a-cf28-6d10f9aa361b"
+id3 = "492b6649-acba-5fa6-d0a3-14530f336314"
+id4 = "4599a64e-1467-9361-8203-034b82c14a36"
+id5 = "9b1cbcc5-18f2-183d-7132-11898d8026a3"
+id6 = "21654adf-21ff-cdb3-477a-e3df132d357b"
+id7 = "942ee3b9-1c4d-b2da-1b4e-60d86765c4db"
+order1 = 84948
+order2 = 84948
+
+
+
+What is the value of the output variable called order1 ?
+
+Use the terraform output command.
+
+root@iac-server ~/terraform-projects/data via 💠 default on ☁️  (us-east-1) ➜  terraform output order1
+84948
+
+
+We have a new configuration directory located at the path /root/terraform-projects/output. Inspect the configuration files that are created in this directory.
+
+What is the value of the output variable pet-name ?
+
+Use the terraform output command within the new configuration directory.
+
+main.tf file:
+
+resource "random_pet" "my-pet" {
+
+  length    = var.length 
+}
+
+output "pet-name" {
+	
+	value = random_pet.my-pet.id
+	description = "Record the value of pet ID generated by the random_pet resource"
+}
+
+variable.tf:
+
+variable "prefix" {
+  default = "Mrs"	
+}
+
+variable "separator" {
+	default = "."
+}
+
+variable "length" {
+	default = "1"
+}
+
+
+Run init,plan, apply:
+
+
+root@iac-server ~/terraform-projects/output via 💠 default on ☁️  (us-east-1) ➜  terraform apply
+random_pet.my-pet: Refreshing state... [id=ape]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration and found no differences, so no changes are needed.
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+pet-name = "ape"
+
+
+Asnwer: ape
+
+
+We have just updated the main.tf file in this directory with a new resource block.
+Add a new output variable with the following specifications:
+
+Output Variable Name: welcome_message
+
+Value: content of the resource called welcome
+
+
+When ready, run terraform init, plan and apply
+
+resource "local_file" "welcome" {
+  filename = "/root/message.txt"
+  content  = "Welcome to Kodekloud."
+}
+
+
+output "welcome_message" {
+  value = local_file.welcome.content
+
+}
+
+Run inint,plan, apply:
+
+Outputs:
+
+pet-name = "ape"
+welcome_message = "Welcome to Kodekloud."

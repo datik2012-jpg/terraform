@@ -1,0 +1,1490 @@
+WHen we run terraform apply and succeed - we will get terrafrom.tfstate  file  - which represent a state ,json file wich mpas resources to the difinition files
+
+It means:
+
+Terraform reads the real AWS infrastructure and updates the state file to match it.
+
+This does not change infrastructure — only the state file.
+
+If you run:
+
+
+terraform plan -refresh=false
+
+Terraform will not check AWS for drift.
+It will only compare your .tf files to the existing terraform.tfstate.
+
+
+
+Summary Table
+Flag	What It Does	When to Use
+-refresh=true	Updates state from AWS before plan/apply	Normal use
+-refresh=false	Uses state as-is, no AWS queries	When AWS API is slow or you want to avoid drift detection
+terraform refresh	Updates state only (deprecated)	Don’t use
+
+//////////////////////////Team work with terraform state ///////////
+
+
+Where the backend block should be created
+You create it in your Terraform configuration folder, for example:
+
+Code
+/project/
+  main.tf
+  variables.tf
+  outputs.tf
+  backend.tf   ← put it here
+Terraform does not care about the filename — only that the block is inside any .tf file in the working directory.
+
+⭐ Example: backend.tf
+hcl
+terraform {
+  backend "s3" {
+    bucket         = "my-terraform-state"
+    key            = "prod/network/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
+  }
+}
+⭐ What happens after you add this file
+When you run:
+
+Code
+terraform init
+Terraform will:
+
+Read the backend block
+
+Connect to AWS using your AWS CLI credentials
+
+Create or download the remote state
+
+Store a local working copy in .terraform/
+
+Lock the state using DynamoDB during operations
+
+This is how your local Terraform “knows” where the shared state is.
+
+⭐ Important: You must run terraform init after adding or changing the backend
+Terraform will ask:
+
+Code
+Do you want to copy existing state to the new backend?
+This is how the state gets migrated to S3 the first time.
+
+⭐ Team workflow after backend is configured
+Every team member:
+
+Clones the repo
+
+Runs terraform init
+
+Terraform automatically pulls the shared state from S3
+
+No one needs to manually copy state files.
+
+⭐ Summary
+File	Purpose
+backend.tf	Defines where the shared state lives
+.terraform/	Local working copy (not the real state)
+S3 bucket	Real shared state file
+DynamoDB	Locking to prevent conflicts
+
+
+///////////////////////////////////LAB ////////////////
+
+Which location is the terraform state file stored by default?
+
+
+Answer: inside the configuration directory
+
+Which option should we use to disable state?
+
+Answer: We can not disable state only tell to the state no refresh: terraform plan -refresh=false
+
+
+Which format is the state file stored in by default?
+
+Answer: json
+
+Which of the following commands does NOT refresh the state?
+
+Answer: terraform init - does not refresh the state  (plan and apply  - do refresh)
+
+What is the name of the state file that is created by default?
+
+Answer: terraform.tfstate
+
+
+Navigate to the configuration directory /root/terraform-projects/project-flash we have created a few configuration files here. The directory has been initialized and the provider plugins downloaded inside the .terraform directory. However, there is no terraform.tfstate file created. Why is that?
+
+Answer: terraform apply wa not run
+
+
+Run the terraform show command and identify the id created for the resource called speed_force.
+
+root@iac-server ~/terraform-projects/project-flash via 💠 default on ☁️  (us-east-1) ➜  terraform show
+No state.
+
+Answer: there no state yet
+
+
+
+Run init, plan , apply and Now, check terraform show again. What is the value of id for the resource called speed_force?
+
+
+root@iac-server ~/terraform-projects/project-flash via 💠 default on ☁️  (us-east-1) ➜  terraform show
+# local_file.reverse-flash:
+resource "local_file" "reverse-flash" {
+    content              = "reverse-flash"
+    content_base64sha256 = "Kace3gKIeU2ZCrzpIfitqTpaWRR2kK9h1SfG7HQX9g8="
+    content_base64sha512 = "B02UG9wp6Czo23pn2gT/+YreJPaAoMf5fvjDpnymQiXsSfNSHvLfhyn4qXmNQUqborgGFq3imi6wMp7GYHQnPg=="
+    content_md5          = "f6cc31cf8b2e4d5868b646567f2c8edb"
+    content_sha1         = "eebf1b0eee8ccea695bf7925def3d540801e16c7"
+    content_sha256       = "29a71ede0288794d990abce921f8ada93a5a59147690af61d527c6ec7417f60f"
+    content_sha512       = "074d941bdc29e82ce8db7a67da04fff98ade24f680a0c7f97ef8c3a67ca64225ec49f3521ef2df8729f8a9798d414a9ba2b80616ade29a2eb0329ec66074273e"
+    directory_permission = "0777"
+    file_permission      = "0777"
+    filename             = "/root/reverse-flash"
+    id                   = "eebf1b0eee8ccea695bf7925def3d540801e16c7"
+}
+
+# local_file.riddler:
+resource "local_file" "riddler" {
+    content              = "riddler"
+    content_base64sha256 = "ZovOaJeJQ6wk+LukJRF4IvHfbvLwrjID3HoP9Mrvo6A="
+    content_base64sha512 = "ZzOhD2IhUO4zPafhb8xoi1zMpVzfiOcprBlhCY7waUIS1/zHmvtbVYqS5aQdXnTQEFjEmuvjlwqaV9kErD/7TA=="
+    content_md5          = "426c70c360c4b0c5ef58e6dc535cf520"
+    content_sha1         = "4a99c9eed6c660f5874cc2505558d5abf940a498"
+    content_sha256       = "668bce68978943ac24f8bba425117822f1df6ef2f0ae3203dc7a0ff4caefa3a0"
+    content_sha512       = "6733a10f622150ee333da7e16fcc688b5ccca55cdf88e729ac1961098ef0694212d7fcc79afb5b558a92e5a41d5e74d01058c49aebe3970a9a57d904ac3ffb4c"
+    directory_permission = "0777"
+    file_permission      = "0777"
+    filename             = "/root/riddler"
+    id                   = "4a99c9eed6c660f5874cc2505558d5abf940a498"
+}
+
+# local_file.speed_force:
+resource "local_file" "speed_force" {
+    content              = "speed-force"
+    content_base64sha256 = "+hI5F86aVJG7nQ6K0VEOJHTIhlj5aRLnpODNbyZExtI="
+    content_base64sha512 = "COfaah4Goo2T1qerQ8gYg5uR6onGpW1IjlpCtZuOW3UT+MH0rzPSj/LSKTJHHCfYVL0w3Q0B78u8RsRpueUNqg=="
+    content_md5          = "b5db1e5be7170beefea11ae7271a06a8"
+    content_sha1         = "ebeb8b595c8eb4a6e81cacf244146e742fab2981"
+    content_sha256       = "fa123917ce9a5491bb9d0e8ad1510e2474c88658f96912e7a4e0cd6f2644c6d2"
+    content_sha512       = "08e7da6a1e06a28d93d6a7ab43c818839b91ea89c6a56d488e5a42b59b8e5b7513f8c1f4af33d28ff2d22932471c27d854bd30dd0d01efcbbc46c469b9e50daa"
+    directory_permission = "0777"
+    file_permission      = "0777"
+    filename             = "/root/speed-force"
+    id                   = "ebeb8b595c8eb4a6e81cacf244146e742fab2981"
+}
+
+# local_file.zoom:
+resource "local_file" "zoom" {
+    content              = "zoom"
+    content_base64sha256 = "0hu1N3JdYD7i2635w9Hikaa3rtIV02o05YoaOw2qUIQ="
+    content_base64sha512 = "3Y2YQB1BY5V4oYMn3EG3BuLyLFtEZINT1DQ+37JtqKgecw0RXR4hvh4dfrMJNcD0jYgwfh1k64noe1NNjLZx8w=="
+    content_md5          = "15913c103a5238e5a80ac2f498ee090d"
+    content_sha1         = "92298812107bb17eff1b85e15547ae13b6fee3a1"
+    content_sha256       = "d21bb537725d603ee2dbadf9c3d1e291a6b7aed215d36a34e58a1a3b0daa5084"
+    content_sha512       = "dd8d98401d41639578a18327dc41b706e2f22c5b44648353d4343edfb26da8a81e730d115d1e21be1e1d7eb30935c0f48d88307e1d64eb89e87b534d8cb671f3"
+    directory_permission = "0777"
+    file_permission      = "0777"
+    filename             = "/root/zoom"
+    id                   = "92298812107bb17eff1b85e15547ae13b6fee3a1"
+}
+
+
+Answer: id                   = "ebeb8b595c8eb4a6e81cacf244146e742fab2981"
+
+
+
+We have just added a new configuration file called aws-infra.tf into this configuration directory and provisioned the resources.
+
+These are AWS resources. Don't worry if they are unfamiliar to you, we will soon be learning about them in the upcoming lectures!
+
+Inspect the terraform.tfstate file or run terraform show command.
+
+You will notice that all the attribute details for all the resources created by this configuration is now printed on the screen!
+
+
+Among them is an EC2 Instance which is created by the resource called dev-server. See if you can find out the private_ip for the instance that was created.
+
+root@iac-server ~/terraform-projects/project-flash via 💠 default on ☁️  (us-east-1) ➜  terraform show
+# aws_instance.dev-server:
+resource "aws_instance" "dev-server" {
+    ami                                  = "ami-02cff456777cd"
+    arn                                  = "arn:aws:ec2:us-east-1::instance/i-34379b8539ce2fa96"
+    associate_public_ip_address          = true
+    availability_zone                    = "us-east-1a"
+    disable_api_stop                     = false
+    disable_api_termination              = false
+    ebs_optimized                        = false
+    get_password_data                    = false
+    hibernation                          = false
+    host_id                              = null
+    iam_instance_profile                 = null
+    id                                   = "i-34379b8539ce2fa96"
+    instance_initiated_shutdown_behavior = "stop"
+    instance_lifecycle                   = null
+    instance_state                       = "running"
+    instance_type                        = "t2.micro"
+    ipv6_address_count                   = 0
+    ipv6_addresses                       = []
+    key_name                             = null
+    monitoring                           = false
+    outpost_arn                          = null
+    password_data                        = null
+    placement_group                      = null
+    placement_partition_number           = 0
+    primary_network_interface_id         = "eni-d684ff41b615ca148"
+    private_dns                          = "ip-10-93-63-156.ec2.internal"
+    private_ip                           = "10.93.63.156"
+    public_dns                           = "ec2-54-214-146-221.compute-1.amazonaws.com"
+    public_ip                            = "54.214.146.221"
+    secondary_private_ips                = []
+    security_groups                      = []
+    source_dest_check                    = true
+    spot_instance_request_id             = null
+    subnet_id                            = "subnet-85ccccaef4a6df0ef"
+    tags_all                             = {}
+    tenancy                              = "default"
+    user_data_replace_on_change          = false
+    vpc_security_group_ids               = []
+
+    metadata_options {
+        http_endpoint               = "enabled"
+        http_protocol_ipv6          = "disabled"
+        http_put_response_hop_limit = 1
+        http_tokens                 = "optional"
+        instance_metadata_tags      = "disabled"
+    }
+
+    root_block_device {
+        delete_on_termination = true
+        device_name           = "/dev/sda1"
+        encrypted             = false
+        iops                  = 0
+        kms_key_id            = null
+        tags                  = {}
+        throughput            = 0
+        volume_id             = "vol-47251aec3101b27b2"
+        volume_size           = 8
+        volume_type           = "gp2"
+    }
+}
+
+# aws_s3_bucket.falshpoint:
+resource "aws_s3_bucket" "falshpoint" {
+    acceleration_status         = null
+    arn                         = "arn:aws:s3:::project-flashpoint-paradox"
+    bucket                      = "project-flashpoint-paradox"
+    bucket_domain_name          = "project-flashpoint-paradox.s3.amazonaws.com"
+    bucket_prefix               = null
+    bucket_regional_domain_name = "project-flashpoint-paradox.s3.us-east-1.amazonaws.com"
+    force_destroy               = false
+    hosted_zone_id              = "Z3AQBSTGFYJSTF"
+    id                          = "project-flashpoint-paradox"
+    object_lock_enabled         = false
+    policy                      = null
+    region                      = "us-east-1"
+    request_payer               = "BucketOwner"
+    tags_all                    = {}
+
+    grant {
+        id          = "75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a"
+        permissions = [
+            "FULL_CONTROL",
+        ]
+        type        = "CanonicalUser"
+        uri         = null
+    }
+
+    server_side_encryption_configuration {
+        rule {
+            bucket_key_enabled = false
+
+            apply_server_side_encryption_by_default {
+                kms_master_key_id = null
+                sse_algorithm     = "AES256"
+            }
+        }
+    }
+
+    versioning {
+        enabled    = false
+        mfa_delete = false
+    }
+}
+
+Answer: private_ip                           = "10.93.63.156"
+
+
+////////////////////////////////////////////////////////////////////////
+
+>terraform validate
+
+terraform validate checks whether your Terraform configuration files are syntactically correct and internally consistent.  
+It does not contact AWS, does not refresh state, and does not compare anything to real infrastructure.
+
+It’s basically a static code check for Terraform.
+
+
+What terraform validate actually does
+It checks:
+
+Syntax errors in .tf files
+
+Invalid arguments
+
+Wrong resource names
+
+Missing required fields
+
+Type mismatches
+
+Module structure correctness
+
+It ensures your configuration is valid Terraform code.
+
+
+
+What terraform validate does NOT do
+It does not:
+
+Refresh state
+
+Connect to AWS
+
+Check if resources exist
+
+Detect drift
+
+Check if your plan will succeed
+
+For those, you need:
+
+terraform plan
+
+terraform apply
+
+
+
+/////////////////////////////////////////////////////////////
+
+
+>terraform fmt
+
+
+terraform fmt automatically formats your Terraform code so it follows the official Terraform style conventions.  
+It makes your .tf files clean, consistent, and readable — without changing any functionality.
+
+What terraform fmt does
+It reformats your Terraform files by:
+
+Fixing indentation
+
+Aligning = signs
+
+Sorting attributes
+
+Normalizing whitespace
+
+Making code consistent across the team
+
+It’s basically Terraform’s built‑in “prettier”.
+
+//////////////////////////////////////////////////
+
+
+terraform providers and terraform provider mirror sound similar, but they do very different things.
+Think of it this way:
+
+terraform providers = show me what providers my configuration uses
+
+terraform provider mirror = download those providers into a local folder or mirror registry
+
+Let’s break it down cleanly so you can see the difference.
+
+
+terraform providers — INSPECT providers
+This command analyzes your Terraform configuration and tells you:
+
+Which providers you use
+
+Which versions are required
+
+Which modules use which providers
+
+How providers are inherited or overridden
+
+It’s a read-only inspection tool.
+
+>terraform providers
+
+Output:
+.
+├── provider[registry.terraform.io/hashicorp/aws] ~> 5.0
+└── module.network
+    └── provider[registry.terraform.io/hashicorp/aws] ~> 5.0
+
+
+When to use it:
+Understanding provider dependencies
+
+Debugging provider version issues
+
+Checking which modules use which provider
+
+
+terraform provider mirror — DOWNLOAD providers
+This command downloads provider binaries into a local directory so Terraform can install them from there instead of the internet.
+
+It creates a local mirror of the Terraform Registry.
+
+
+terraform providers mirror ./providers
+
+
+./providers/registry.terraform.io/hashicorp/aws/5.0.1/
+./providers/registry.terraform.io/hashicorp/random/3.6.0/
+
+When to use it:
+Air‑gapped environments
+
+Corporate environments with no internet
+
+Caching providers for CI/CD
+
+Creating your own internal provider registry
+
+///////////////////////////////////Dependency graph visualization ////////////
+
+
+That screenshot shows the commands used to visualize a Terraform dependency graph using Graphviz.
+Here’s what each line does and how it fits together:
+
+Step-by-step explanation
+apt update  
+Updates your Linux package list so you can install new software.
+
+apt install graphviz -y  
+Installs Graphviz, a tool that converts graph data into visual diagrams.
+The -y flag automatically confirms installation.
+
+terraform graph | dot -Tsvg > graph.svg
+
+terraform graph generates a DOT-format graph of your Terraform configuration — showing dependencies between resources and modules.
+
+dot -Tsvg tells Graphviz to render that DOT data into an SVG image.
+
+> graph.svg saves the output as a file named graph.svg.
+
+So, after running these commands, you’ll have a visual map of your Terraform infrastructure in SVG format that you can open in any browser or image viewer.
+
+Why this is useful
+Helps you understand resource relationships
+
+Makes debugging complex configurations easier
+
+Great for documentation or team discussions
+
+
+/////////////////////////////////LAB //////////////
+
+Which command can be used to create a visual representation of our terraform resources?
+
+A: terraform graph
+
+
+We have created a configuration directory at /root/terraform-projects/project-shazam.
+The configuration file inside is intended to generate an RSA private key and then a Certificate Signing Request (CSR) using that key.
+
+However, the configuration contains an error related to the arguments used in the resource block.
+Use the terraform validate command to identify and fix the syntax or argument-related issues.
+
+
+Note: You do not need to run terraform plan or terraform apply at this stage. The task is only to ensure that terraform validate passes successfully.
+
+Current main.tf satate is:
+
+resource "local_file" "key_data" {
+        filename       = "/tmp/.pki/private_key.pem"
+        content = tls_private_key.private_key.private_key_pem
+        file_permission =  "0400"
+}
+resource "tls_private_key" "private_key" {
+  algorithm   = "RSA"
+  dsa_bits  = 0485                                            - here shows an error 
+}
+resource "tls_cert_request" "csr" {
+  private_key_pem = tls_private_key.private_key.private_key_pem
+  depends_on = [ local_file.key_data ]
+
+  subject {
+    common_name  = "flexit.com"
+    organization = "FlexIT Consulting Services"
+  }
+}
+
+
+
+>terraform validate   - check the main.tf file and confirm the issue
+
+root@iac-server ~/terraform-projects/project-shazam via 💠 default on ☁️  (us-east-1) ➜  terraform validate
+╷
+│ Error: Unsupported argument
+│ 
+│   on main.tf line 8, in resource "tls_private_key" "private_key":
+│    8:   dsa_bits  = 0485
+│ 
+│ An argument named "dsa_bits" is not expected here. Did you mean "rsa_bits"?
+
+
+I have fixed a line and run validation again:
+
+root@iac-server ~/terraform-projects/project-shazam via 💠 default on ☁️  (us-east-1) ✖ terraform validate
+Success! The configuration is valid.
+
+init,plan and apply:
+
+Output had some error: tls_private_key.private_key: Creating...
+╷
+│ Error: Unable to generate Key from configuration
+│ 
+│   with tls_private_key.private_key,
+│   on main.tf line 6, in resource "tls_private_key" "private_key":
+│    6: resource "tls_private_key" "private_key" {
+│ 
+│ crypto/rsa: 485-bit keys are insecure (see https://go.dev/pkg/crypto/rsa#hdr-Minimum_key_size)
+
+Cause: That error means Terraform tried to generate an RSA private key that’s too small — specifically, a 485‑bit key.
+Modern cryptography standards require at least 2048 bits for RSA keys, and the Go crypto library (which Terraform uses) refuses to create anything smaller.
+
+Fixed and rerun plan and apply:
+
+  Enter a value: yes
+
+tls_private_key.private_key: Creating...
+tls_private_key.private_key: Creation complete after 0s [id=7dcf9329cae6acf4633fbcf2dec64f02a68989d9]
+local_file.key_data: Creating...
+local_file.key_data: Creation complete after 1s [id=3276bceb7c2b4e655f092052bbf23e56cde32d1c]
+tls_cert_request.csr: Creating...
+tls_cert_request.csr: Creation complete after 0s [id=ce8f209c92871010acf14ce19137ee0dbc758b5c]
+
+Apply complete! Resources: 3 added, 0 changed, 0 destroyed.
+
+
+
+If you completed the previous task correctly, the terraform validate command should have passed.
+
+Now, run the terraform plan command to generate an execution plan for the current configuration.
+
+Did the plan run successfully?
+
+A: Yes
+
+Format the main.tf file to follow the standard Terraform style conventions.
+
+Use the appropriate command to rewrite the file into canonical format.
+
+root@iac-server ~/terraform-projects/project-shazam via 💠 default on ☁️  (us-east-1) ➜  terraform fmt
+main.tf
+
+Navigate to the directory /root/terraform-projects/project-a.
+
+The resources defined in the configuration have already been created.
+
+Your task is to determine the value of the filename argument used in one of the resources.
+
+Note: This information must be retrieved from the Terraform state, not from the configuration file.
+
+
+resource "local_file" "data" {
+	  filename = "/opt/codes"
+	  content = "You've to write this code."
+}
+
+In the context of these Terraform labs, we have utilized various providers. However, what exactly are providers?
+
+A: Providers are Plugins
+
+
+Which of the following is a valid sub-command of the terraform providers command?
+
+A: mirror    - when we want to download from somewhere or custom registry 
+
+
+A new configuration directory, /root/terraform-projects/provider, has been created. We have already executed the terraform init command.
+
+Now, please verify the provider plugins that have been downloaded using the command line utility, rather than examining the .terraform directory. After completing this verification, select the appropriate option.
+
+A: In .terraorm folder i see two providers one is AWS and second is provier_local
+
+
+////////////////////////Mutable vs Immutable Ifrastructure //////
+
+Mutable vs. Immutable Infrastructure is one of those foundational Terraform concepts that completely changes how you think about deploying systems. Let’s break it down in a way that’s clear, practical, and tied to how Terraform actually behaves.
+
+
+Mutable infrastructure means you change servers in-place.
+You update, patch, reconfigure, or modify an existing resource instead of replacing it.
+
+
+How it behaves
+You SSH into a server and update software
+
+Terraform updates an existing resource instead of recreating it
+
+State stays the same, resource ID stays the same
+
+Pros
+Fast updates
+
+No need to recreate everything
+
+Works well for databases or long-lived systems
+
+Cons
+Configuration drift
+
+Harder to reproduce environments
+
+“Snowflake servers” — each one becomes unique over time
+
+erraform example (mutable)
+hcl
+resource "aws_instance" "web" {
+  ami           = "ami-123"
+  instance_type = "t3.micro"  # Changing this updates in-place
+}
+
+Immutable Infrastructure
+Immutable infrastructure means you never modify servers.
+Instead, you replace them with new ones.
+
+How it behaves
+You build a new AMI or container image
+
+Terraform destroys the old resource and creates a new one
+
+No drift, fully reproducible
+
+Pros
+Predictable deployments
+
+Easy rollbacks
+
+No drift
+
+Works perfectly with CI/CD, autoscaling, containers
+
+Cons
+Slower deployments
+
+More resource churn
+
+Not ideal for stateful systems (databases)
+
+
+Terraform example (immutable)
+
+resource "aws_instance" "web" {
+  ami           = "ami-new-version"  # Changing AMI forces replacement
+  instance_type = "t3.micro"
+}
+
+Terraform will show:
+
+Code
+-/+ destroy and create replacement
+
+
+
+Terraform’s philosophy:
+
+“If a change risks breaking the resource, replace it.”
+
+But Terraform can do mutable updates when the provider supports it.
+
+When to Use Which
+Use Mutable when:
+Databases
+
+Stateful servers
+
+Systems with persistent storage
+
+You need fast, in-place updates
+
+
+Use Immutable when:
+Web servers
+
+Containers
+
+Auto-scaling groups
+
+Blue/green deployments
+
+CI/CD pipelines
+
+
+Concept	Mutable	Immutable
+Terraform behavior	Update in-place	Destroy + recreate
+Drift	High risk	No drift
+Speed	Fast	Slower
+Rollbacks	Hard	Easy
+Best for	DBs, stateful	Web apps, stateless
+
+////////////////////////Licycles Rules in Terraform ///////////
+
+Terraform alsways by default delete the resource and deploy new when we run APPLY
+
+Sometimes we do not want the resource to be deleted and want to do som changes on the current resource  - muttable option in this case , we modify current resource
+
+For example we want create the resource before we destroy the old one:
+
+resource "local_file" "pet" {
+  filename        = "/root/pets.txt"
+  content         = "We love pets!"
+  file_permission = "0700"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+This tells Terraform:
+
+“When this resource changes, create the new one before destroying the old one.”
+
+Another Example: If you want Terraform to update a resource in place (change its attributes without destroying and recreating it), you can control that behavior using the lifecycle meta‑argument.
+
+lifecycle {
+  prevent_destroy = true
+}
+
+
+This tells Terraform:
+
+“Never destroy this resource — even if the configuration changes.”
+
+
+If you modify attributes that normally trigger replacement, Terraform will throw an error instead of deleting the resource.
+
+
+
+resource "local_file" "pet" {
+  filename        = "/root/pets.txt"
+  content         = "We love pets!"
+  file_permission = "0700"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+Now, if you change content or file_permission, Terraform will update the file in place.
+If you try to delete or recreate it, Terraform will stop you with an error.
+
+
+Other lifecycle options
+Lifecycle rule	Behavior
+create_before_destroy	Creates new resource before destroying old one (avoids downtime)
+prevent_destroy	Blocks destruction entirely
+ignore_changes	Ignores specific attribute changes (useful for external updates)
+
+Example:
+
+lifecycle {
+  ignore_changes = [file_permission]
+}
+
+erraform will skip updates to that attribute even if it changes outside Terraform.
+
+🧭 Summary
+To change a resource without destroying it, use one of these:
+
+prevent_destroy = true → never delete
+
+ignore_changes = [...] → skip updates for certain attributes
+
+create_before_destroy = true → replace safely without downtime
+
+
+////////////////////////////////////////LAB ////////////////////////////////////////
+
+We have a directory created called /root/terraform-projects/project-mysterio. The main.tf file already has a couple of resource blocks.
+
+Which resource types do they use?
+
+
+resource "local_file" "file" {
+    filename = var.filename
+    file_permission =  var.permission
+    content = random_string.string.id
+    
+}
+
+resource "random_string" "string" {
+    length = var.length
+    keepers = {
+        length = var.length
+    }  
+    
+}
+
+Answer: local_file and random_string
+
+
+Now, create these two resources that have been defined in this configuration file.
+
+
+Run init first - to download providers and then VALIDATION:
+
+root@iac-server ~/terraform-projects/project-mysterio via 💠 default on ☁️  (us-east-1) ✖ terraform init
+Initializing the backend...
+Initializing provider plugins...
+- Finding latest version of hashicorp/local...
+- Finding latest version of hashicorp/random...
+- Installing hashicorp/local v2.9.0...
+- Installed hashicorp/local v2.9.0 (signed by HashiCorp)
+- Installing hashicorp/random v3.9.0...
+- Installed hashicorp/random v3.9.0 (signed by HashiCorp)
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+root@iac-server ~/terraform-projects/project-mysterio via 💠 default on ☁️  (us-east-1) ➜  terraform validate
+Success! The configuration is valid.
+
+Run plan and apply:
+
+  Enter a value: yes
+
+random_string.string: Creating...
+random_string.string: Creation complete after 0s [id=k>)q1b}A}?]
+local_file.file: Creating...
+local_file.file: Creation complete after 0s [id=a6e0f82cf93b35a029a7ad2019e4d7ee47c641ee]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+
+
+Which resource is created first in this case?
+
+
+resource "local_file" "file" {
+    filename = var.filename
+    file_permission =  var.permission
+    content = random_string.string.id
+    
+}
+
+resource "random_string" "string" {
+    length = var.length
+    keepers = {
+        length = var.length
+    }  
+    
+}
+
+Answer: random_string is first cause imlicitly has local_file
+
+
+We have modified the resource configuration again. Run a terraform plan now. What would happen?
+
+terraform pla will show us TWO placese to be replaced:
+
+Terraform will perform the following actions:
+
+  # local_file.file must be replaced
+-/+ resource "local_file" "file" {
+      ~ content              = "k>)q1b}A}?" -> (known after apply) # forces replacement
+      ~ content_base64sha256 = "KyAwq3jyeawqtn3dkOyCR1gi99+h3l7Le9+q4kkCWxc=" -> (known after apply)
+      ~ content_base64sha512 = "vebLrFvwLua/eZmzuAcdQu/i6RBcK67Px5GcaCP1RMhapo7g53uupJvccmIMmcHVMpDaOS8+toduaeryvTLQkQ==" -> (known after apply)
+      ~ content_md5          = "356c74b63baef669efb3fc3c97bf5660" -> (known after apply)
+      ~ content_sha1         = "a6e0f82cf93b35a029a7ad2019e4d7ee47c641ee" -> (known after apply)
+      ~ content_sha256       = "2b2030ab78f279ac2ab67ddd90ec82475822f7dfa1de5ecb7bdfaae249025b17" -> (known after apply)
+      ~ content_sha512       = "bde6cbac5bf02ee6bf7999b3b8071d42efe2e9105c2baecfc7919c6823f544c85aa68ee0e77baea49bdc72620c99c1d53290da392f3eb6876e69eaf2bd32d091" -> (known after apply)
+      ~ file_permission      = "700" -> "770" # forces replacement
+      ~ id                   = "a6e0f82cf93b35a029a7ad2019e4d7ee47c641ee" -> (known after apply)
+        # (2 unchanged attributes hidden)
+    }
+
+  # random_string.string must be replaced
+-/+ resource "random_string" "string" {
+      ~ id          = "k>)q1b}A}?" -> (known after apply)
+      ~ keepers     = { # forces replacement
+          ~ "length" = "10" -> "12"
+        }
+      ~ length      = 10 -> 12 # forces replacement
+      ~ result      = "k>)q1b}A}?" -> (known after apply)
+        # (9 unchanged attributes hidden)
+    }
+
+Plan: 2 to add, 0 to change, 2 to destroy.
+
+so answer is :both 
+
+
+
+Why is the string resource being re-created?
+
+See the plan output:
+
+  # random_string.string must be replaced
+-/+ resource "random_string" "string" {
+      ~ id          = "k>)q1b}A}?" -> (known after apply)
+      ~ keepers     = { # forces replacement
+          ~ "length" = "10" -> "12"
+        }
+      ~ length      = 10 -> 12 # forces replacement
+      ~ result      = "k>)q1b}A}?" -> (known after apply)
+
+Answer: the value of keepers been changed !!!
+
+
+All resources associated with the random provider can be recreated by utilizing a map type argument known as keepers. Modifying the value of this argument will necessitate the recreation of the resource.
+
+This argument accepts arbitrary key/value pairs. In the current example, it is configured with a key named length, which has been updated from a value of 10 to 12 in the variables.tf file.
+
+Executing a terraform apply at this time will result in the destruction of the existing random_string resource, followed by the creation of a new resource with a length of 12 characters.
+
+
+Let's change the order in which the resource called string is recreated. Update the configuration so that when applied, a new random string is created first before the old one is destroyed.
+
+
+After updating the configuration, please ensure you execute terraform apply to implement the changes.
+
+Added lifecycle: 
+
+resource "local_file" "file" {
+    filename = var.filename
+    file_permission =  var.permission
+    content = random_string.string.id
+    
+}
+
+resource "random_string" "string" {
+    length = var.length
+    keepers = {
+        length = var.length
+    }  
+    lifecycle {
+    create_before_destroy = true
+  }
+    
+}
+
+
+Let's change the order in which the resource called string is recreated. Update the configuration so that when applied, a new random string is created first before the old one is destroyed.
+
+
+After updating the configuration, please ensure you execute terraform apply to implement the changes.
+
+
+
+The resource block for the file resource has been updated. This modification will require the resource to be recreated during the next apply. Before proceeding, please add a lifecycle rule of create_before_destroy to this resource block.
+
+Once you have made the necessary changes, apply the updates by executing terraform apply.
+
+
+Important: After adding the lifecycle rule, please run the apply command only once. We will explore the reasons for this shortly.
+
+resource "local_file" "file" {
+    filename = var.filename
+    file_permission =  var.permission
+    content = "This is a random string - ${random_string.string.id}"
+    lifecycle {
+        create_before_destroy =  true
+    }
+    
+    
+}
+
+resource "random_string" "string" {
+    length = var.length
+    keepers = {
+        length = var.length
+    }
+    lifecycle {
+        create_before_destroy =  true
+    }
+    
+}
+
+Great! We have now added the lifecycle rule and forced the resources to be created first and then destroyed.
+
+What is the id of the file resource we just created?
+
+Run terraform show or terraform state show local_file.file to find out.
+
+
+root@iac-server ~/terraform-projects/project-mysterio via 💠 default on ☁️  (us-east-1) ➜  terraform plan
+random_string.string: Refreshing state... [id=]7H7:YDAu@#m]
+
+root@iac-server ~/terraform-projects/project-mysterio via 💠 default on ☁️  (us-east-1) ➜  terraform show
+# local_file.file:
+resource "local_file" "file" {
+    content              = "This is a random string - ]7H7:YDAu@#m"
+    content_base64sha256 = "j/TfMxiAtCuyRuDDENSHtKwbm1gHguz+2+yTz/y2Ix8="
+    content_base64sha512 = "1+NjdPyqnDiVVbPvvgjcvrHHc5dIBTc+vH3+OHPp3dZguOKCK1wj2iEnsW4m2iyiI45ZPrJ3zowd3VmBpvc/6Q=="
+    content_md5          = "714090922c449705274bd1a9872f91be"
+    content_sha1         = "f2b83338721bb4de8ed281552f02142cfd1dec7a"
+    content_sha256       = "8ff4df331880b42bb246e0c310d487b4ac1b9b580782ecfedbec93cffcb6231f"
+    content_sha512       = "d7e36374fcaa9c389555b3efbe08dcbeb1c773974805373ebc7dfe3873e9ddd660b8e2822b5c23da2127b16e26da2ca2238e593eb277ce8c1ddd5981a6f73fe9"
+    directory_permission = "0777"
+    file_permission      = "770"
+    filename             = "/root/random_text"
+    id                   = "f2b83338721bb4de8ed281552f02142cfd1dec7a"
+}
+
+Answer: f2b83338721bb4de8ed281552f02142cfd1dec7a
+
+
+
+
+Issue file can not be created oin the same path with the same name ,cause the lifecycles says create before delete - so it will the issue:
+
+resource "local_file" "file" {
+    filename = var.filename
+    file_permission =  var.permission
+    content = "This is a random string - ${random_string.string.id}"
+    lifecycle {
+        create_before_destroy =  true
+    }
+
+
+
+We have successfully removed the resources that were created in this configuration directory and updated the main.tf file.
+
+The file now includes only a single random_pet resource named super_pet.
+
+A new pet id will be generated when certain input variables change following the initial apply. Please utilize the terraform plan command with different variable values to determine the conditions under which a new pet id will be created.
+
+Under which circumstances will a new pet id be created?
+
+
+resource "random_pet" "super_pet" {
+    length = var.length
+    prefix = var.prefix
+   
+}
+
+
+Now, update the configuration so that the resource super_pet is not destroyed under any circumstances with a terraform destroy or terraform apply command.
+
+please apply the updated configuration first.
+
+
+
+root@iac-server ~/terraform-projects/project-mysterio via 💠 default on ☁️  (us-east-1) ➜  terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following
+symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # random_pet.super_pet will be created
+  + resource "random_pet" "super_pet" {
+      + id        = (known after apply)
+      + length    = 10
+      + prefix    = "Mr"
+      + separator = "-"
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+Answer: both cause vars going to get defaults
+
+
+
+
+
+resource "random_pet" "super_pet" {
+    length = var.length
+    prefix = var.prefix
+
+    lifecycle {
+      prevent_destroy = true
+    }
+   
+}
+
+Example: What happens if you try to destroy it
+If you run:
+
+Code
+terraform destroy
+
+Error: Instance cannot be destroyed
+Resource random_pet.super_pet has prevent_destroy set
+
+hat can break:
+
+S3 bucket names
+
+IAM roles
+
+DNS records
+
+Anything depending on that name
+
+So prevent_destroy ensures the name stays stable.
+
+///////////////////////////////Data sources /////////////
+
+That snippet defines a Terraform data source, not a resource — and that distinction is key.
+
+Here’s what it means:
+
+data "local_file" "dog" {
+  filename = "/root/dog.txt"
+}
+
+
+data block
+A data source lets Terraform read existing information rather than create something new.
+In this case, it reads the contents of a local file that already exists on your system.
+
+🔹 local_file data source
+This comes from the local provider. It’s used to import file content into Terraform so you can reference it elsewhere — for example, to use the file’s text in another resource.
+
+🔹 filename
+Specifies the path to the file Terraform should read (/root/dog.txt).
+
+
+
+What happens when you run Terraform
+When you run terraform apply or terraform plan, Terraform will:
+
+Look for /root/dog.txt
+
+Read its contents
+
+Make that content available as an output variable
+
+You can access it like this:
+
+hcl
+output "dog_content" {
+  value = data.local_file.dog.content
+}
+
+
+Summary
+Element	Purpose
+data	Reads existing info
+local_file	Reads local file content
+filename	Path to file
+data.local_file.dog.content	Returns file text
+
+
+/////////////////////Datasources LAB ///////////////////
+
+
+A data source once created, can be used to create, update, and destroy infrastructure?
+
+True or False?
+
+AM:False  - (you described resource and data source is something else)
+
+A data source can be created using the data block.
+
+True or False?
+
+A:True
+
+A data source can be created using the data block.
+
+True or False?
+
+A:True
+
+A new configuration directory has been created at /root/terraform-projects/project-lexcorp. A data source block is defined in the main.tf file to read the contents of an existing file.
+
+There is also an output variable that uses reference expression to print the file content using this data source. However, there is something wrong!
+
+
+Troubleshoot and fix the issue.
+
+
+When ready, run terraform init, plan and apply to create the datasource. The configuration should print the output variable correctly.
+
+Given file:
+
+output "os-version" {
+  value = data.local_file.content
+}
+data source "local_file" "os" {
+  filename = "/etc/os-release"
+}
+
+
+i see the issue in data source:
+
+fixing:
+
+output "os-version" {
+  value = data.local_file.content
+}
+data "local_file" "os" {
+  filename = "/etc/os-release"
+}
+
+Run init - passed
+Run validate - failed:
+
+root@iac-server ~/terraform-projects/project-lexcorp via 💠 default on ☁️  (us-east-1) ➜  terraform validate
+╷
+│ Error: Reference to undeclared resource
+│ 
+│   on main.tf line 2, in output "os-version":
+│    2:   value = data.local_file.content
+│ 
+│ A data resource "local_file" "content" has not been declared in the root module.
+
+i will try to add "os" in the os-version :
+
+output "os-version" {
+  value = data.local_file.os.content
+}
+data "local_file" "os" {
+  filename = "/etc/os-release"
+}
+
+Validation - passed:
+
+root@iac-server ~/terraform-projects/project-lexcorp via 💠 default on ☁️  (us-east-1) ✖ terraform validate
+Success! The configuration is valid.
+
+Run plan - passed
+Run apply:
+
+Outputs:
+
+os-version = <<EOT
+PRETTY_NAME="Ubuntu 22.04.5 LTS"
+NAME="Ubuntu"
+VERSION_ID="22.04"
+VERSION="22.04.5 LTS (Jammy Jellyfish)"
+VERSION_CODENAME=jammy
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=jammy
+
+EOT
+
+
+Now let's practice how to work with data sources from other providers.
+
+The next few questions will be based on the aws provider.
+Although we have only predominantly worked with local and the random provider, this exercise will help you learn how to work with different data sources using the documentation.
+
+Don't worry if the configuration blocks and the arguments are unfamiliar. We will cover them in detail in the upcoming section.
+
+We have now created a new configuration file called ebs.tf within the same configuration directory we have been working on.
+
+What is the resource type that we are working with here?
+
+ebs.tf:
+
+data "aws_ebs_volume" "gp2_volume" {
+  most_recent = true
+
+  filter {
+    name   = "volume-type"
+    values = ["gp2"]
+  }
+}
+
+
+Answer: aws_ebs_volume
+
+Once this data source is created, how do we fetch the Volume Id for the resource that is created in AWS?
+
+You may have to look up the documentation for this one. Documentation tab is available at the top right.
+
+
+checked in the colipot ,cause terraform documentation is failing to search EBS:
+
+output "volume_id" {
+  value = aws_ebs_volume.my_volume.id
+}
+
+Answer: volume_id
+
+
+Another file called s3.tf has now been created. It too has a data source that will be used to read data of an existing s3 bucket.
+
+However, there is a mistake in the argument used. What is wrong here?
+
+
+You may have to look up the documentation for this one. Documentation tab is available at the top right.
+
+Seem the error in the name:
+
+data "aws_s3_bucket" "selected" {
+  bucket_name = "bucket.test.com"
+}
+
+checked in documentation: https://developer.hashicorp.com/vault/docs/configuration/storage/s3
+
+
+data "aws_s3_bucket" "selected" {
+  bucket = "bucket.test.com"
+}
+
+///////////////////////Meta Arguments ////////////
+
+bash script to create 3  creates an empty file:
+
+#!/bin/bash
+
+for i in {1..3}
+do
+    touch /root/pet${i}
+done
+
+
+In terraform:
+
+resource "local_file" "pet" {
+  count    = 3
+  filename = "/root/pet${count.index + 1}"
+  content  = "We love pets!"
+}
+
+What happens
+count = 3 → Terraform creates three files
+
+count.index starts at 0, so count.index + 1 gives 1, 2, 3
+
+Files created:
+
+/root/pet1
+
+/root/pet2
+
+/root/pet3
+
+
+Alternative using for_each:
+
+
+locals {
+  pets = ["dog", "cat", "hamster"]
+}
+
+resource "local_file" "pet" {
+  for_each = toset(local.pets)
+  filename = "/root/${each.key}.txt"
+  content  = "We love ${each.key}s!"
+}
+
+ummary
+Method	Terraform Feature	Output
+Count	Simple numeric loop	/root/pet1, /root/pet2, /root/pet3
+For_each	Loop over list or map	/root/dog.txt, /root/cat.txt, /root/hamster.txt
+
+
+Example of creating 3 resources:
+
+resource "local_file" "pet" {
+  filename = var.filename
+  
+  count = 3                      - will create 3 resources local_file pet .pet[0],pet[1],pet[2]   - but the issue is they have not uniq name
+}
+
+
+Example it will check the length in vaibles default and then filename read one by one create the files  -  so 3 resources will be created
+
+resource "local_file" "pet" {
+  filename = var.filename[count.index]
+  count    = length(var.filename)
+}
+
+variable.tf:
+
+variable "filename" {
+  default = [
+    "/root/pets.txt",
+    "/root/dogs.txt",
+    "/root/cats.txt"
+  ]
+}
+
+
+The case if we remove from filename - pets and run terraform apply it will deleted all the resources and recreated them !! cause indexes are moving and dogs will have 0 index.
+Later we will see how to fix that.
+
+//////////////////////////////for_each/////////////////
+
+Perfect observation, Dani — this Terraform setup is the for_each version of the dynamic file creation pattern you explored earlier. Let’s break down exactly how it works and why it’s often preferred over count.
+
+
+resource "local_file" "pet" {
+  filename = each.value
+  for_each = toset(var.filename)
+}
+
+for_each
+This tells Terraform to iterate over each element in the set created from var.filename.
+Each iteration creates a separate local_file resource.
+
+🔹 each.value
+Represents the current item in the loop — in this case, the filename string.
+
+So Terraform will create:
+
+/root/pets.txt
+
+/root/dogs.txt
+
+/root/cats.txt
+
+Each file becomes its own resource, referenced as:
+
+hcl
+local_file.pet["/root/pets.txt"]
+local_file.pet["/root/dogs.txt"]
+local_file.pet["/root/cats.txt"]
+🧩 variables.tf
+hcl
+variable "filename" {
+  type = list(string)
+  default = [
+    "/root/pets.txt",
+    "/root/dogs.txt",
+    "/root/cats.txt"
+  ]
+}
+This defines a list of strings — each one is a file path.
+Terraform converts it to a set with toset(var.filename) so for_each can iterate over unique values.
+
+🧠 Why use for_each instead of count
+Feature	count	for_each
+Indexing	Numeric (count.index)	Keyed (each.key)
+Uniqueness	Allows duplicates	Requires unique keys
+Resource references	resource[0], resource[1]	resource["key"]
+Best for	Simple lists	Named or unique items
+

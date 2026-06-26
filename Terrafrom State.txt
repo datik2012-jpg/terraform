@@ -1488,3 +1488,392 @@ Uniqueness	Allows duplicates	Requires unique keys
 Resource references	resource[0], resource[1]	resource["key"]
 Best for	Simple lists	Named or unique items
 
+
+/////////////////////////////////////LAB Count and for each ///////////\
+
+
+
+Count example:
+
+resource "aws_s3_bucket" "example" {
+  count  = 3
+  bucket = "my-bucket-${count.index}"
+}
+
+
+using List example:
+
+variable "names" {
+  default = ["logs", "assets", "images"]
+}
+
+resource "aws_s3_bucket" "b" {
+  count  = length(var.names)
+  bucket = var.names[count.index]
+}
+
+
+using for each example:
+
+resource "aws_s3_bucket" "b" {
+  for_each = {
+    logs   = "log-bucket"
+    assets = "asset-bucket"
+  }
+
+  bucket = each.value
+  tags = {
+    Name = each.key
+  }
+}
+
+
+
+A new configuration directory has been created at /root/terraform-projects/project-shade. Please inspect it and determine the number of files that will be created by this configuration.
+
+Answer:  1 file 
+
+resource "local_sensitive_file" "name" {
+    filename = "/root/user-data"
+    content = "password: S3cr3tP@ssw0rd"
+
+}
+
+
+Now, please add a count argument to create 3 instances of this resource.
+
+
+When ready, run terraform init, plan and apply
+
+
+resource "local_sensitive_file" "name" {
+    count = 3
+    filename = "/root/user-data"
+    content = "password: S3cr3tP@ssw0rd - ${count.index}"
+
+}
+
+
+run init, validate, plan, apply and show in the end it will be created as a "list":
+
+root@iac-server ~/terraform-projects/project-shade via 💠 default on ☁️  (us-east-1) ✖ terraform show
+# local_sensitive_file.name[0]:
+resource "local_sensitive_file" "name" {
+    content              = (sensitive value)
+    content_base64sha256 = "QLGKvgH6BwL46zK0cKp8NpDpN8q/x8ppMa3Qd0zb7uk="
+    content_base64sha512 = "eT5fEyyrzcNZ9foTEN8mcto/ShdPMllB2LtihN23G+ERhGvQyBAaUpVObomCD6xmFBzFPJYi7qqXqAGMZZ9OQA=="
+    content_md5          = "9abdeb7693d44df24b40255212892651"
+    content_sha1         = "f7c0dbc2e8ae3f5233e3bb92b7526d31759acb6d"
+    content_sha256       = "40b18abe01fa0702f8eb32b470aa7c3690e937cabfc7ca6931add0774cdbeee9"
+    content_sha512       = "793e5f132cabcdc359f5fa1310df2672da3f4a174f325941d8bb6284ddb71be111846bd0c8101a52954e6e89820fac66141cc53c9622eeaa97a8018c659f4e40"
+    directory_permission = "0700"
+    file_permission      = "0700"
+    filename             = "/root/user-data"
+    id                   = "f7c0dbc2e8ae3f5233e3bb92b7526d31759acb6d"
+}
+
+# local_sensitive_file.name[1]:
+resource "local_sensitive_file" "name" {
+    content              = (sensitive value)
+    content_base64sha256 = "wZMjlZI5K0oIDG4BQ+WsJ36zCE5v2gHvgAVmDg6eujY="
+    content_base64sha512 = "b7m0v2K1DX8EqkDWmxfAOqPdKQgUg4OwxhpFTb87cmH17p/ceHREVsGTyK1ql9uptuYL747UyrOpl9WKYW1SqA=="
+    content_md5          = "e1f4681f4bd107b921798259764cc289"
+    content_sha1         = "6c1b7bd5bfedd56376d9d85eed149baf09e2482e"
+    content_sha256       = "c193239592392b4a080c6e0143e5ac277eb3084e6fda01ef8005660e0e9eba36"
+    content_sha512       = "6fb9b4bf62b50d7f04aa40d69b17c03aa3dd2908148383b0c61a454dbf3b7261f5ee9fdc78744456c193c8ad6a97dba9b6e60bef8ed4cab3a997d58a616d52a8"
+    directory_permission = "0700"
+    file_permission      = "0700"
+    filename             = "/root/user-data"
+    id                   = "6c1b7bd5bfedd56376d9d85eed149baf09e2482e"
+}
+
+# local_sensitive_file.name[2]:
+resource "local_sensitive_file" "name" {
+    content              = (sensitive value)
+    content_base64sha256 = "zllpxtkvuv5TJwGKjzlZDvjammvD4SFDYIbpfrcUQ9k="
+    content_base64sha512 = "mJesc6I6+974FJPll3GqBgn89h1dlTNHk5voaJo4p4HNmJqY7/X/lonfBy8hIhgSAAozTWxWf+uRgKn+vzxJSQ=="
+    content_md5          = "f6c4e40e96212cb94d3a52246a79a39a"
+    content_sha1         = "63c5cbbaa353ccfa4f068d88f843c27c28eafe6c"
+    content_sha256       = "ce5969c6d92fbafe5327018a8f39590ef8da9a6bc3e121436086e97eb71443d9"
+    content_sha512       = "9897ac73a23afbdef81493e59771aa0609fcf61d5d953347939be8689a38a781cd989a98eff5ff9689df072f21221812000a334d6c567feb9180a9febf3c4949"
+    directory_permission = "0700"
+    file_permission      = "0700"
+    filename             = "/root/user-data"
+    id                   = "63c5cbbaa353ccfa4f068d88f843c27c28eafe6c"
+}
+
+
+even if i will change the resource code to:
+
+resource "local_sensitive_file" "name" {
+    count = 3
+    filename = "/root/user-data"
+    content = "password: S3cr3tP@ssw0rd"
+
+}
+
+
+
+root@iac-server ~/terraform-projects/project-shade via 💠 default on ☁️  (us-east-1) ✖ terraform show
+# local_sensitive_file.name[0]:
+resource "local_sensitive_file" "name" {
+    content              = (sensitive value)
+    content_base64sha256 = "UKHUK6B1218hZ3Ol3r+tIk7sp63j47ZUBa/GKbFWJec="
+    content_base64sha512 = "5Nozea4bZ8PG2K4iZjQYz9wy6ww6stUoezX4xlJqvml7udlB+d0qtLkMfljB/YLPnL493+paeO28lVUlSp//ng=="
+    content_md5          = "fda7d68399be93ab193e02bcaaf1cde3"
+    content_sha1         = "6b32344cb73c40d126d99ce62309878befca64ce"
+    content_sha256       = "50a1d42ba075db5f216773a5debfad224eeca7ade3e3b65405afc629b15625e7"
+    content_sha512       = "e4da3379ae1b67c3c6d8ae22663418cfdc32eb0c3ab2d5287b35f8c6526abe697bb9d941f9dd2ab4b90c7e58c1fd82cf9cbe3ddfea5a78edbc9555254a9fff9e"
+    directory_permission = "0700"
+    file_permission      = "0700"
+    filename             = "/root/user-data"
+    id                   = "6b32344cb73c40d126d99ce62309878befca64ce"
+}
+
+# local_sensitive_file.name[1]:
+resource "local_sensitive_file" "name" {
+    content              = (sensitive value)
+    content_base64sha256 = "UKHUK6B1218hZ3Ol3r+tIk7sp63j47ZUBa/GKbFWJec="
+    content_base64sha512 = "5Nozea4bZ8PG2K4iZjQYz9wy6ww6stUoezX4xlJqvml7udlB+d0qtLkMfljB/YLPnL493+paeO28lVUlSp//ng=="
+    content_md5          = "fda7d68399be93ab193e02bcaaf1cde3"
+    content_sha1         = "6b32344cb73c40d126d99ce62309878befca64ce"
+    content_sha256       = "50a1d42ba075db5f216773a5debfad224eeca7ade3e3b65405afc629b15625e7"
+    content_sha512       = "e4da3379ae1b67c3c6d8ae22663418cfdc32eb0c3ab2d5287b35f8c6526abe697bb9d941f9dd2ab4b90c7e58c1fd82cf9cbe3ddfea5a78edbc9555254a9fff9e"
+    directory_permission = "0700"
+    file_permission      = "0700"
+    filename             = "/root/user-data"
+    id                   = "6b32344cb73c40d126d99ce62309878befca64ce"
+}
+
+# local_sensitive_file.name[2]:
+resource "local_sensitive_file" "name" {
+    content              = (sensitive value)
+    content_base64sha256 = "UKHUK6B1218hZ3Ol3r+tIk7sp63j47ZUBa/GKbFWJec="
+    content_base64sha512 = "5Nozea4bZ8PG2K4iZjQYz9wy6ww6stUoezX4xlJqvml7udlB+d0qtLkMfljB/YLPnL493+paeO28lVUlSp//ng=="
+    content_md5          = "fda7d68399be93ab193e02bcaaf1cde3"
+    content_sha1         = "6b32344cb73c40d126d99ce62309878befca64ce"
+    content_sha256       = "50a1d42ba075db5f216773a5debfad224eeca7ade3e3b65405afc629b15625e7"
+    content_sha512       = "e4da3379ae1b67c3c6d8ae22663418cfdc32eb0c3ab2d5287b35f8c6526abe697bb9d941f9dd2ab4b90c7e58c1fd82cf9cbe3ddfea5a78edbc9555254a9fff9e"
+    directory_permission = "0700"
+    file_permission      = "0700"
+    filename             = "/root/user-data"
+    id                   = "6b32344cb73c40d126d99ce62309878befca64ce"
+}
+
+
+
+What is the id for the resource element at index 1?
+
+Answer: check terraform show:
+
+id                   = "6b32344cb73c40d126d99ce62309878befca64ce"
+
+
+
+
+How many files were actually created when apply was run?
+
+Answer: see in the project only one file - user-data
+
+To create 3 files we need to give different names to the files:
+
+resource "local_sensitive_file" "name" {
+  count    = 3
+  filename = "/root/user-data-${count.index}"
+  content  = "password: S3cr3tP@ssw0rd"
+}
+
+
+Use a list variable with count to generate multiple resources
+
+We’ve created a variables.tf file in the same directory, which contains a list variable called users.
+
+Now, update the main.tf file to use this list for the filename argument inside the resource block.
+
+
+Instructions:
+
+Use the count meta-argument to create one resource for each element in the list.
+Do not hardcode the filenames.
+Use the content variable for the content argument.
+
+
+variable "users" {
+  type = list
+}
+
+Declaring a variable does NOT give it a value.  
+Terraform will wait for you to provide the list somewhere else.
+
+
+variables.tf has:
+
+variable "users" {
+    type = list
+}
+variable "content" {
+    default = "password: S3cr3tP@ssw0rd"
+  
+}
+
+main.tf:
+
+resource "local_sensitive_file" "name" {
+    count  = length(var.users)
+    filename = "/root/user-data-${var.users[count.index]}"
+    content = "password: S3cr3tP@ssw0rd-${var.users[count.index]}"
+
+}
+
+or main.tf can be:
+
+resource "local_file" "users" {
+  count    = length(var.users)
+  filename = var.users[count.index]
+  content  = "User file"
+}
+
+to run this: terraform apply -var='users=["dani","mike","sara"]'
+
+will be created 3 files: user-data-dani, user-data-mike, user-data-sara
+
+
+terraform init
+terraform apply -auto-approve + need send data to the list
+
+
+We have reverted to the old configuration file and removed the resources that have been created thus far. A variable named users now has default values assigned to it.
+
+What type of variable is represented in this context?
+
+
+variable "users" {
+    type = list(string)
+    default = [ "/root/user10", "/root/user11", "/root/user12", "/root/user10"]
+}
+variable "content" {
+    default = "password: S3cr3tP@ssw0rd"
+  
+}
+
+Answer: list(string)
+
+Can the same elements in this list be used directly as a set?
+
+Answer: no, no duplicates ion the set
+
+
+
+Create multiple resources using for_each instead of count
+
+Let’s repeat the same exercise — but this time, you’ll use the for_each meta-argument to create the files dynamically.
+
+Instructions:
+
+Do not use any hard-coded values.
+Use the list variable users to loop through the values.
+Assign the value of content to the content argument inside your resource block.
+
+When ready, run terraform init, plan and apply.
+
+
+
+main.tf:
+
+resource "local_file" "name" {
+  //count    = length(var.users)
+  //filename = var.users[count.index]
+  //content  = "User file"
+
+  for_each = toset(var.users) //to avoid duplicates
+  filename = each.value
+  content  = var.content
+
+}
+
+variables.tf:
+
+variable "users" {
+    type = list(string)
+    default = [ "/root/user10", "/root/user11", "/root/user12", "/root/user10"]
+}
+variable "content" {
+    default = "password: S3cr3tP@ssw0rd"
+  
+}
+ run init,validate,plan, apply:
+
+Will be created 3 files , user10,user11,user12 
+
+
+The resource called name is now created as:
+
+Answer: map  
+
+
+
+The resource address with the filename - /root/user11 is now represented as:
+I see in the terraform show:
+local_file.name["/root/user12"] will be created
+
+//////////////////////////////Version Constrains ///////////////
+
+mention specific version in the tf file
+
+Navigate to the directory /root/terraform-projects/omega where we have added a configuration file. Inspect the file and choose the correct version of the provider from the below options:
+
+
+terraform {
+  required_providers {
+    local = {
+      source  = "hashicorp/local"
+      version = "1.2.2"
+    }
+  }
+}
+
+resource "local_file" "innovation" {
+  filename = var.path
+  content  = var.message
+}
+
+
+Answer: version = "1.2.2"
+
+
+Now, change to the directory /root/terraform-projects/rotate. We have already initialized the configuration directory using the terraform init command.
+Inspect the rotation.tf file and find out the correct version of the provider plugin that is downloaded.
+Choose the correct version from the below options:
+
+You don't have to create the resources!!
+
+
+Answer: cause they run init , so we need just to open .terraform folder and see there downloaded provider_v3.47.0_x5
+
+
+Which one of the below is not a valid version constraint operator?
+
+Answer: == is not valid
+
+We have been working on a project called nautilus under the configuration directory /root/terraform-projects/nautilus.
+Due to a version mismatch, we don't want to download the aws provider version 3.17.0. Which version constraint can be used to achieve this?
+
+You can try to add the below options in nautilus.tf to verify the correct syntax.
+
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ""
+    }
+  }
+}
+
+Answer: version = "!=3.17.0" more example: version = ">= 1.0.0, != 1.4.0"
+
+
+Now, navigate to the directory /root/terraform-projects/lexicorp where we have added the configuration files. Inspect the file and find out which version of providers will be download.
+
+If unsure, refer to the documentation. Documentation tab is available at the top right panel.
+
+Answer : any helm version > 1.2.0 and version 1.12.0 < k8s < 1.13.3 but not 1.13.1

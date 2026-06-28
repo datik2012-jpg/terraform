@@ -1,0 +1,270 @@
+//////////////////////LAB /////////////
+
+
+In this lab, we will work on configuration directories that have been created under /root/terraform-projects/S3-Buckets.
+
+
+Let's first inspect the configuration files in the directory called MCU.
+
+What is the AWS region configured for use in the provider block? (Assuming we do not pass in additional variables during command execution)
+
+
+Answer: region = "us-east-1"
+
+
+
+There is a resource block configured in the main.tf file in this configuration directory. What is the resource name that will be provisioned when we run terraform apply?
+
+
+main.tf:
+
+resource "aws_s3_bucket" "marvel-cinematic-universe" {
+  bucket = "mcu-202011121359"
+
+}
+
+
+Answer: marvel-cinematic-universe  - is resource name
+
+
+What is the current state of this configuration directory?
+
+
+root@iac-server terraform-projects/S3-Buckets/MCU via 💠 default on ☁️  (us-east-1) ➜  terraform show
+# aws_s3_bucket.marvel-cinematic-universe:
+resource "aws_s3_bucket" "marvel-cinematic-universe" {
+    acceleration_status         = null
+    arn                         = "arn:aws:s3:::mcu-202011121359"
+    bucket                      = "mcu-202011121359"
+    bucket_domain_name          = "mcu-202011121359.s3.amazonaws.com"
+    bucket_regional_domain_name = "mcu-202011121359.s3.amazonaws.com"
+    force_destroy               = false
+    hosted_zone_id              = "Z3AQBSTGFYJSTF"
+    id                          = "mcu-202011121359"
+    object_lock_enabled         = false
+    policy                      = null
+    region                      = "us-east-1"
+    request_payer               = "BucketOwner"
+    tags_all                    = {}
+
+    grant {
+        id          = "75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a"
+        permissions = [
+            "FULL_CONTROL",
+        ]
+        type        = "CanonicalUser"
+        uri         = null
+    }
+
+    server_side_encryption_configuration {
+        rule {
+            bucket_key_enabled = false
+
+            apply_server_side_encryption_by_default {
+                kms_master_key_id = null
+                sse_algorithm     = "AES256"
+            }
+        }
+    }
+
+    versioning {
+        enabled    = false
+        mfa_delete = false
+    }
+}
+
+
+Answer: Resorces provisioned  - so we have state file
+
+
+What is the name of the s3 bucket that has been created by this configuration?
+
+Answer: terraform show :  bucket                      = "mcu-202011121359"
+
+
+What is the DNS domain name that is created for this bucket?
+
+Answer: terrafrom show : bucket_domain_name          = "mcu-202011121359.s3.amazonaws.com"
+
+
+
+The main.tf file is empty. Use it to create a new S3 with the following specifications:
+resource name: dc_bucket
+bucket name: dc_is_better_than_marvel
+
+
+Once the resource block is complete, run a terraform init, plan and apply to try and create the bucket.
+
+
+If unsure, refer to the documentation. The documentation tab is available at the top right panel.
+
+(it's ok if you get an error! Move on to the next question!)
+
+
+resource "aws_s3_bucket" "dc_bucket" {
+  bucket = "dc_is_better_than_marvel"
+}
+
+
+run inint,validate,plan,apply:
+
+root@iac-server terraform-projects/S3-Buckets/DC via 💠 default on ☁️  (us-east-1) ➜  terraform validate
+Success! The configuration is valid.
+
+
+during apply got an ERROR: 
+
+│ Error: error creating S3 Bucket (dc_is_better_than_marvel): InvalidBucketName: The specified bucket is not valid.
+│       status code: 400, request id: d3313f72-42d9-4afb-aefc-ead322ee6f7d, host id: s9lzHYrFp76ZVxRcpX9+5cjAnEH2ROuNkd2BHfIa6UkFVdtjf5mKR3/eTPFvsiP/XV/VLi31234=
+│ 
+│   with aws_s3_bucket.dc_bucket,
+│   on main.tf line 1, in resource "aws_s3_bucket" "dc_bucket":
+│    1: resource "aws_s3_bucket" "dc_bucket" {
+
+Invalid bucket name !!!!
+
+
+Let's fix that now and change the bucket name so that it uses dashes (-) instead of underscore(_).
+
+resource name: dc_bucket
+bucket name: dc-is-better-than-marvel
+
+
+Once the resource block is complete, run a terraform init, plan and apply to try and create the bucket.
+
+Fixed:
+
+resource "aws_s3_bucket" "dc_bucket" {
+  bucket = "dc-is-better-than-marvel"
+}
+
+
+  Enter a value: yes
+
+aws_s3_bucket.dc_bucket: Creating...
+aws_s3_bucket.dc_bucket: Creation complete after 0s [id=dc-is-better-than-marvel]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+
+Let's move on to the next configuration directory called Pixar.
+Same as the directory called DC, we have the provider.tf, variables.tf, terraform.tfvars and an empty main.tf file that is already created.
+
+Change directory to Pixar and move on to the next question.
+
+
+We have a file called woody.jpg stored at /root that has to be uploaded to a bucket called pixar-studios-2020. This bucket already exists though and was created using the AWS CLI.
+
+
+Let's do that now and upload this image to the s3 bucket! Update the main.tf file with the following specifications:
+
+Bucket: pixar-studios-2020
+Key: woody.jpg
+Source: /root/woody.jpg
+Use object (resource) Name: upload
+
+Once ready, proceed to run terraform init, plan and apply.
+
+main.tf:
+
+resource "aws_s3_object" "upload" {
+  bucket = "pixar-studios-2020"   # existing bucket
+  key    = "woody.jpg"            # object name in S3
+  source = "/root/woody.jpg"      # local file path
+  etag   = filemd5("/root/woody.jpg")
+}
+
+
+and run init,validate,plan and apply:
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+aws_s3_object.upload_woody: Creating...
+aws_s3_object.upload_woody: Creation complete after 0s [id=woody.jpg]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+>terraform show
+
+
+root@iac-server terraform-projects/S3-Buckets/Pixar via 💠 default on ☁️  (us-east-1) ➜  terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated
+with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # aws_s3_object.upload_woody will be created
+  + resource "aws_s3_object" "upload_woody" {
+      + acl                    = "private"
+      + bucket                 = "pixar-studios-2020"
+      + bucket_key_enabled     = (known after apply)
+      + content_type           = (known after apply)
+      + etag                   = "d134df2a93e3249d0a944bed29c4a0e4"
+      + force_destroy          = false
+      + id                     = (known after apply)
+      + key                    = "woody.jpg"
+      + kms_key_id             = (known after apply)
+      + server_side_encryption = (known after apply)
+      + source                 = "/root/woody.jpg"
+      + storage_class          = (known after apply)
+      + tags_all               = (known after apply)
+      + version_id             = (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+aws_s3_object.upload_woody: Creating...
+aws_s3_object.upload_woody: Creation complete after 0s [id=woody.jpg]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+root@iac-server terraform-projects/S3-Buckets/Pixar via 💠 default on ☁️  (us-east-1) ➜  terraform show
+# aws_s3_object.upload_woody:
+resource "aws_s3_object" "upload_woody" {
+    acl                           = "private"
+    bucket                        = "pixar-studios-2020"
+    bucket_key_enabled            = false
+    cache_control                 = null
+    content_disposition           = null
+    content_encoding              = null
+    content_language              = null
+    content_type                  = "binary/octet-stream"
+    etag                          = "d134df2a93e3249d0a944bed29c4a0e4"
+    force_destroy                 = false
+    id                            = "woody.jpg"
+    key                           = "woody.jpg"
+    object_lock_legal_hold_status = null
+    object_lock_mode              = null
+    object_lock_retain_until_date = null
+    server_side_encryption        = "AES256"
+    source                        = "/root/woody.jpg"
+    storage_class                 = "STANDARD"
+    tags_all                      = {}
+    version_id                    = null
+    website_redirect              = null
+}
+
+List s3 bucket:  aws s3 ls s3://pixar-studios-2020
+
+neede rename the resource cause validation search for the "upload":
+
+resource "aws_s3_object" "upload" {
+  bucket = "pixar-studios-2020"   # existing bucket
+  key    = "woody.jpg"            # object name in S3
+  source = "/root/woody.jpg"      # local file path
+  etag   = filemd5("/root/woody.jpg")
+}
+
+

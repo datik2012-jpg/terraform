@@ -1,0 +1,329 @@
+DynamoDB Attribute Types
+1. S — String
+Used for text values like names, emails, IDs.
+
+2. N — Number
+Used for integers, floats, timestamps.
+
+3. B — Binary
+Used for raw bytes (rare unless storing encoded data).
+
+DynamoDB Set Types (collections)
+4. SS — String Set
+Example: ["red", "blue", "green"]
+
+5. NS — Number Set
+Example: [1, 2, 3]
+
+6. BS — Binary Set
+Example: [<binary1>, <binary2>]
+
+Terraform Example Using All Types
+
+
+
+DynamoDB Table with id, name, secondname
+hcl
+resource "aws_dynamodb_table" "pixar_people" {
+  name         = "pixar-people"
+  billing_mode = "PAY_PER_REQUEST"
+
+  # Primary key (required)
+  hash_key = "id"
+
+  # Attributes
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  attribute {
+    name = "name"
+    type = "S"
+  }
+
+  attribute {
+    name = "secondname"
+    type = "S"
+  }
+
+  tags = {
+    Environment = "dev"
+    Owner       = "dani"
+  }
+}
+
+
+/////////Example create a table with VIN only and add data to this (not VIM only) //////////
+
+
+resource "aws_dynamodb_table" "cars" {
+  name         = "cars"
+  hash_key     = "VIN"
+  billing_mode = "PAY_PER_REQUEST"
+
+  attribute {
+    name = "VIN"
+    type = "S"
+  }
+}
+
+resource "aws_dynamodb_table_item" "car-items" {
+  table_name = aws_dynamodb_table.cars.name               -which table name to use - "CARS"
+  hash_key   = aws_dynamodb_table.cars.hash_key           - which key attribute
+  item       = <<EOF
+{
+  "Manufacturer": {"S": "Toyota"},
+  "Make": {"S": "Corolla"},
+  "Year": {"N": "2004"},
+  "VIN": {"S": "4Y1SL65848Z411439"}
+}
+EOF
+}
+
+
+////////////////////////////LAB Terraform DynamoDB ///////////////
+
+In this lab, we will work with DynamoDB tables using terraform.
+
+The configuration directories have been created under /root/terraform-projects/DynamoDB.
+
+
+We have already created a resource block for a DynamoDB table inside /root/terraform-projects/DynamoDB/project-sapphire-user-data/.
+
+But something is wrong with this configuration. Try running a terraform plan or validate and identify the cause of the failure.
+
+
+>terraform plan shows:
+
+Error: 2 errors occurred:
+│       * all attributes must be indexed. Unused attributes: ["Name"]
+│       * all indexes must match a defined attribute. Unmatched indexes: ["UserId"]
+│ 
+│ 
+│ 
+│   with aws_dynamodb_table.project_sapphire_user_data,
+│   on main.tf line 1, in resource "aws_dynamodb_table" "project_sapphire_user_data":
+│    1: resource "aws_dynamodb_table" "project_sapphire_user_data" {
+
+Answer: Attribute for a Primary Key is missing
+
+
+Error: 2 errors occurred:
+│       * all attributes must be indexed. Unused attributes: ["Name"]
+│       * all indexes must match a defined attribute. Unmatched indexes: ["UserId"]
+
+
+Let's fix that now! Update the main.tf file so that it uses an attribute for the Primary/Hash Key.
+Note that the UserId should be a number.
+
+
+Once ready, run a terraform init, plan and apply.
+
+Fixed hash_key should be the same as attribute:
+
+resource "aws_dynamodb_table" "project_sapphire_user_data" {
+  name           = "userdata"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "UserId"
+
+  attribute {
+    name = "UserId"
+    type = "S"
+  }
+}
+
+
+provider.tf has:
+
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "4.15.0"
+    }
+  }
+}
+
+provider "aws" {
+  region                      = var.region
+  skip_credentials_validation = true
+  skip_requesting_account_id  = true
+
+  endpoints {
+    dynamodb                       = "http://aws:4566"
+  }
+}
+
+variables.tf has:
+
+variable "region" {
+    default = "us-west-2"
+  
+}
+
+
+Another table has been created using the configuration in the directory /root/terraform-projects/DynamoDB/project-sapphire-inventory.
+
+Navigate to this directory and inspect the configuration.
+
+
+What is the name of the DynamoDB table resource that is created by this configuration?
+
+
+resource "aws_dynamodb_table" "project_sapphire_inventory" {
+  name           = "inventory"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "AssetID"
+
+Answer: project_sapphire_inventory
+
+What is the name of the DynamoDB Table that is created this configuration?
+
+Answer: able name is inventory
+
+
+How many attributes are defined in this table currently?
+
+attribute {
+    name = "AssetID"
+    type = "N"
+  }
+  attribute {
+    name = "AssetName"
+    type = "S"
+  }
+  attribute {
+    name = "age"
+    type = "N"
+  }
+  attribute {
+    name = "Hardware"
+    type = "B"
+  }
+Answer: 4
+
+
+What is the name and type of the Primary Key used by this table?
+
+look main.tf and see:
+
+
+ hash_key       = "AssetID"
+
+  attribute {
+    name = "AssetID"
+    type = "N"
+  }
+
+Answer: NUMBER name = "AssetID"
+
+
+Now, let's add an item to this table called inventory. Use the following specifications and update the main.tf file:
+
+
+Resource Name: upload
+
+Table = Use reference expression to the table called inventory
+
+Hash Key = Use reference expression to use the primary key used by the table inventory
+
+
+Use the below data for item:
+
+{
+
+"AssetID": {"N": "1"},
+
+"AssetName": {"S": "printer"},
+
+"age": {"N": "5"},
+
+"Hardware": {"B": "true" }
+
+}
+
+
+when ready, run terraform init, plan and apply
+
+
+I have added new resource - which add one row to the inventory table:
+
+
+resource "aws_dynamodb_table_item" "upload" {
+  table_name = aws_dynamodb_table.project_sapphire_inventory.name          - table name
+  hash_key   = aws_dynamodb_table.project_sapphire_inventory.hash_key      - hash key tp use
+  item       = <<EOF
+{
+ "AssetID": {"N": "1"},
+
+ "AssetName": {"S": "printer"},
+
+ "age": {"N": "5"},
+
+ "Hardware": {"B": "true" }
+}
+EOF
+}
+
+Full main.tf file:
+
+
+resource "aws_dynamodb_table" "project_sapphire_inventory" {
+  name           = "inventory"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "AssetID"
+
+  attribute {
+    name = "AssetID"
+    type = "N"
+  }
+  attribute {
+    name = "AssetName"
+    type = "S"
+  }
+  attribute {
+    name = "age"
+    type = "N"
+  }
+  attribute {
+    name = "Hardware"
+    type = "B"
+  }
+  global_secondary_index {
+    name             = "AssetName"
+    hash_key         = "AssetName"
+    projection_type    = "ALL"
+    
+  }
+  global_secondary_index {
+    name             = "age"
+    hash_key         = "age"
+    projection_type    = "ALL"
+    
+  }
+  global_secondary_index {
+    name             = "Hardware"
+    hash_key         = "Hardware"
+    projection_type    = "ALL"
+    
+  }
+}
+
+resource "aws_dynamodb_table_item" "upload" {
+  table_name = aws_dynamodb_table.project_sapphire_inventory.name
+  hash_key   = aws_dynamodb_table.project_sapphire_inventory.hash_key
+  item       = <<EOF
+{
+ "AssetID": {"N": "1"},
+
+ "AssetName": {"S": "printer"},
+
+ "age": {"N": "5"},
+
+ "Hardware": {"B": "true" }
+}
+EOF
+}
+
+

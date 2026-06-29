@@ -1,0 +1,465 @@
+Example : Terraform + EC2
+
+main.tf
+hcl
+resource "aws_instance" "webserver" {
+  ami           = "ami-0edab43b6fa892279"
+  instance_type = "t2.micro"
+
+  tags = {
+    Name        = "webserver"
+    Description = "An Nginx WebServer on Ubuntu"
+  }
+
+  user_data = <<-EOF
+    #!/bin/bash
+    sudo apt update
+    sudo apt install nginx -y
+    systemctl enable nginx
+    systemctl start nginx
+  EOF
+}
+
+
+provider.tf
+hcl
+provider "aws" {
+  region = "us-west-1"
+}
+
+This configuration will:
+
+Launch a t2.micro EC2 instance in us-west-1.
+
+Use the specified Ubuntu AMI.
+
+Automatically install and start Nginx via user_data.
+
+
+Example of local-exec:
+
+
+resource "aws_instance" "webserver" {
+  ami           = "ami-0edab43b6fa892279"
+  instance_type = "t2.micro"
+
+  provisioner "local-exec" {
+    command = "echo Instance ${aws_instance.webserver.public_ip} Created! > /tmp/instance_state.txt"
+  }
+}
+
+aws_instance "webserver" — creates an EC2 instance using the specified AMI and instance type.
+
+provisioner "local-exec" — runs a command on your local machine (not inside the EC2 instance) after Terraform finishes creating the resource.
+
+The command writes the instance’s public IP address into /tmp/instance_state.txt, confirming creation.
+
+⚙️ How it works
+Terraform executes the local-exec provisioner after the EC2 instance is successfully created.
+
+It interpolates ${aws_instance.webserver.public_ip} — Terraform fetches the instance’s public IP from AWS and substitutes it into the command.
+
+The result is a local file containing something like:
+
+Code
+Instance 3.97.9.249 Created!
+
+Examle on if fail to run exec and get ip - will mark terraform resource as failed and during destroy:
+
+
+What Each Provisioner Does
+First local-exec (creation)
+
+Runs after the EC2 instance is successfully created.
+
+Writes the instance’s public IP and a “Created!” message to /temp/instance_state.txt.
+
+The on_failure = fail ensures Terraform stops if this command fails.
+
+Second local-exec (destruction)
+
+Runs when Terraform destroys the instance (terraform destroy).
+
+Logs the instance’s public IP and “Destroyed!” message to /tmp/instance_state.txt.
+
+
+resource "aws_instance" "webserver" {
+  ami           = "ami-0edab43b6fa892279"
+  instance_type = "t2.micro"
+
+  provisioner "local-exec" {
+    on_failure = fail
+    command = "echo Instance ${aws_instance.webserver.public_ip} Created! > /temp/instance_state.txt"
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "echo Instance ${aws_instance.webserver.public_ip} Destroyed! > /tmp/instance_state.txt"
+  }
+}
+
+❌ Terraform stops the apply
+❌ Terraform marks the resource as “tainted”
+❌ Terraform does NOT destroy the EC2 instance automatically
+✔️ The EC2 instance still exists in AWS
+
+//////////////////////////LAB //////////////////
+
+Navigate to the directory /root/terraform-projects/project-cerberus. We have an empty main.tf file in this directory.
+Using this configuration file write a resource block to provision a simple EC2 instance with the following specifications:
+
+
+Resource Name: cerberus
+
+AMI: ami-06178cf087598769c, use variable named ami
+
+region: eu-west-2, use variable named region
+
+Instance Type: m5.large, use variable named instance_type
+
+
+Once ready, run terraform init, plan and apply to provision this EC2 instance.
+
+main.tf:
+
+resource "aws_instance" "cerberus" {
+  ami = "ami-06178cf087598769c"
+  instance_type = "m5.large"
+  tags = {
+    Name        = "webserver"
+    Description = "An Nginx WebServer on Ubuntu"
+  }
+}
+
+provider.tf:
+
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "4.15.0"
+    }
+  }
+}
+variable "region" {
+  description = "AWS region to deploy resources"
+  type        = string
+  default     = "eu-west-2"
+}
+
+provider "aws" {
+  region                      = var.region
+  skip_credentials_validation = true
+  skip_requesting_account_id  = true
+
+  endpoints {
+    ec2 = "http://aws:4566"
+  }
+}
+
+run init,validate,plan,apply":
+
+  Enter a value: yes
+
+aws_instance.cerberus: Creating...
+aws_instance.cerberus: Still creating... [10s elapsed]
+aws_instance.cerberus: Creation complete after 11s [id=i-2ce5ba2aa36dc7c9c]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+Perfect! The instance has been created by terraform. To inspect the details of this instance, you can run terraform show command from the configuration directory.
+
+This will print the resource attributes from the state file in a human-readable format.
+
+Terraform show:
+
+# terraform show
+# aws_instance.cerberus:
+resource "aws_instance" "cerberus" {
+    ami                                  = "ami-06178cf087598769c"
+    arn                                  = "arn:aws:ec2:eu-west-2::instance/i-2ce5ba2aa36dc7c9c"
+    associate_public_ip_address          = true
+    availability_zone                    = "eu-west-2a"
+    disable_api_termination              = false
+    ebs_optimized                        = false
+    get_password_data                    = false
+    hibernation                          = false
+    iam_instance_profile                 = null
+    id                                   = "i-2ce5ba2aa36dc7c9c"
+    instance_initiated_shutdown_behavior = "stop"
+    instance_state                       = "running"
+    instance_type                        = "m5.large"
+    ipv6_address_count                   = 0
+    ipv6_addresses                       = []
+    key_name                             = null
+    monitoring                           = false
+    outpost_arn                          = null
+    password_data                        = null
+    placement_group                      = null
+    primary_network_interface_id         = "eni-9df0232e3b39d29b9"
+    private_dns                          = "ip-10-130-214-115.eu-west-2.compute.internal"
+    private_ip                           = "10.130.214.115"
+    public_dns                           = "ec2-54-214-32-174.eu-west-2.compute.amazonaws.com"
+    public_ip                            = "54.214.32.174"
+    secondary_private_ips                = []
+    security_groups                      = []
+    source_dest_check                    = true
+    subnet_id                            = "subnet-73992fda4593a803a"
+    tags                                 = {
+        "Description" = "An Nginx WebServer on Ubuntu"
+        "Name"        = "webserver"
+    }
+    tags_all                             = {
+        "Description" = "An Nginx WebServer on Ubuntu"
+        "Name"        = "webserver"
+    }
+    tenancy                              = "default"
+    user_data_replace_on_change          = false
+    vpc_security_group_ids               = []
+
+    metadata_options {
+        http_endpoint               = "enabled"
+        http_put_response_hop_limit = 1
+        http_tokens                 = "optional"
+        instance_metadata_tags      = "disabled"
+    }
+
+    root_block_device {
+        delete_on_termination = true
+        device_name           = "/dev/sda1"
+        encrypted             = false
+        iops                  = 0
+        kms_key_id            = null
+        tags                  = {}
+        throughput            = 0
+        volume_id             = "vol-736fc8fcb3aff78ad"
+        volume_size           = 8
+        volume_type           = "gp2"
+    }
+}
+
+The AMI ID we have used is an RHEL 8 image in the London region that only accepts SSH-Key based authentication. However, when we created the instance, we did not make use of a key!
+
+Let's create a new key-pair!
+
+
+
+A new SSH key pair has been created in the directory /root/terraform-projects/project-cerberus/.ssh.
+
+The private key is called cerberus and the public key is called cerberus.pub
+
+
+Using the public key, create a new key-pair in AWS with the following specifications:
+
+Resource Name: cerberus-key
+
+key_name: cerberus
+
+Use the file functions to read the public key cerberus.pub
+
+
+When ready, run a terrafom plan and apply to create this key pair.
+
+
+If unsure, refer to the documentation to create a key-pair. Documentation tab is available at the top right.
+
+
+Private key: /root/terraform-projects/project-cerberus/.ssh/cerberus
+
+Public key: /root/terraform-projects/project-cerberus/.ssh/cerberus.pub
+
+
+Create an AWS key pair using your public key
+
+resource "aws_key_pair" "cerberus-key" {
+  key_name   = "cerberus"
+  public_key = file("/root/terraform-projects/project-cerberus/.ssh/cerberus.pub")
+}
+
+What this does
+Terraform reads your public key file.
+
+Terraform uploads it to AWS.
+
+AWS stores it as a key pair named cerberus.
+
+Any EC2 instance using key_name = "cerberus" will inject your public key into ~/.ssh/authorized_keys.
+
+
+Attach the key pair to your EC2 instance
+Update your EC2 resource:
+
+resource "aws_instance" "cerberus" {
+  ami = "ami-06178cf087598769c"
+  instance_type = "m5.large"
+  key_name      = aws_key_pair.cerberus-key.key_name
+  tags = {
+    Name        = "webserver"
+    Description = "An Nginx WebServer on Ubuntu"
+  }
+}
+
+
+run init,plan , apply and then you can SSH with: ssh -i /root/terraform-projects/project-cerberus/.ssh/cerberus ubuntu@<public-ip>
+
+aws_instance.cerberus: Destroying... [id=i-2ce5ba2aa36dc7c9c]
+aws_instance.cerberus: Still destroying... [id=i-2ce5ba2aa36dc7c9c, 10s elapsed]
+aws_instance.cerberus: Destruction complete after 10s
+aws_key_pair.cerberus: Creating...
+aws_key_pair.cerberus: Creation complete after 0s [id=cerberus]
+aws_instance.cerberus: Creating...
+aws_instance.cerberus: Still creating... [10s elapsed]
+aws_instance.cerberus: Creation complete after 10s [id=i-d09d23ab63b380883]
+
+Apply complete! Resources: 2 added, 0 changed, 1 destroyed.
+
+
+Let us now configure the cerberus resource to make use of this key. Update the resource block to make use of the key called cerberus.
+
+
+Once the configuration is updated, run a terraform plan and terraform apply. This will trigger the replacement of the instance with the new one having the key-pair created in our previous step.
+
+
+
+Let us now install nginx with EC2 instance. To do this, let's make use of the user_data argument.
+
+Using the file function again or by making use of the heredoc syntax, use the script called install-nginx.sh as the value for the user_data argument.
+
+
+Do not run terraform apply yet!
+
+
+Option A: user_data = file("/root/terraform-projects/project-cerberus/install-nginx.sh")  - to add this to the resource ec2
+Option B:
+
+ user_data = <<-EOF
+    #!/bin/bash
+    apt update -y
+    apt install nginx -y
+    systemctl enable nginx
+    systemctl start nginx
+  EOF
+
+Option A try: 
+
+
+resource "aws_instance" "cerberus" {
+  ami = "ami-06178cf087598769c"
+  instance_type = "m5.large"
+  key_name      = aws_key_pair.cerberus-key.key_name
+  user_data = file("/root/terraform-projects/project-cerberus/install-nginx.sh")
+  tags = {
+    Name        = "webserver"
+    Description = "An Nginx WebServer on Ubuntu"
+  }
+
+}
+
+resource "aws_key_pair" "cerberus-key" {
+
+where sh file has:
+
+#!/bin/bash
+sudo yum update -y
+sudo yum install nginx -y
+sudo systemctl start nginx
+
+Ru init,apply:
+
+  Enter a value: yes
+
+aws_instance.cerberus: Modifying... [id=i-d09d23ab63b380883]
+aws_instance.cerberus: Still modifying... [id=i-d09d23ab63b380883, 10s elapsed]
+aws_instance.cerberus: Still modifying... [id=i-d09d23ab63b380883, 20s elapsed]
+aws_instance.cerberus: Modifications complete after 20s [id=i-d09d23ab63b380883]
+
+Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
+  key_name   = "cerberus"
+  public_key = file("/root/terraform-projects/project-cerberus/.ssh/cerberus.pub")
+}
+
+
+
+
+If we run now APPLY AGAIN server will be modified but service nging will not be installed- due:
+
+
+In this case, an instance will be modified, but nginx will not be installed. It is due to the fact that User data scripts only run at first boot whereas the instance modification causes a reboot.
+
+Let's apply the updated configuration in the next step!
+
+
+What is the public IPv4 address that has been allocated to this EC2 instance?
+
+run terraform show: 
+
+ public_ip                            = "54.214.115.237
+
+
+
+We use the public IPv4 address to access this server. However, when this server is rebooted or recreated, this IP address would change.
+
+To fix this, let's create an Elastic IP Address.
+
+An Elastic IP address is a static IPv4 address which does not change over time.
+
+
+Create an Elastic IP resource with the following specifications:
+
+Resource Name: eip
+vpc: true
+instance: id of the EC2 instance created for resource cerberus (use a reference expression)
+create a local-exec provisioner for the eip resource and use it to print the attribute called public_dns to a file /root/cerberus_public_dns.txt on the iac-server.
+
+If unsure, refer to the documentation. Documentation tab is available at the top right.
+
+Added aws_eip:
+
+
+resource "aws_instance" "cerberus" {
+  ami = "ami-06178cf087598769c"
+  instance_type = "m5.large"
+  key_name      = aws_key_pair.cerberus-key.key_name
+  user_data = file("/root/terraform-projects/project-cerberus/install-nginx.sh")
+  tags = {
+    Name        = "webserver"
+    Description = "An Nginx WebServer on Ubuntu"
+  }
+
+}
+
+resource "aws_eip" "eip" {
+  vpc      = true
+  instance = aws_instance.cerberus.id
+
+  provisioner "local-exec" {
+    command = "echo ${aws_eip.eip.public_dns} > /root/cerberus_public_dns.txt"
+  }
+}
+
+
+resource "aws_key_pair" "cerberus-key" {
+  key_name   = "cerberus"
+  public_key = file("/root/terraform-projects/project-cerberus/.ssh/cerberus.pub")
+}
+
+now run init and apply
+run show and inspect:
+
+elastic ip resource:
+
+network_interface        = "eni-b0df8f6963fcc030c"
+and
+ec2 instance: primary_network_interface_id = "eni-b0df8f6963fcc030c"
+
+
+NOte:
+
+Because your EC2 instance has two public IPs:
+
+Type	IP	Why it exists
+Auto‑assigned public IP	54.214.115.237	Because associate_public_ip_address = true
+Elastic IP	127.149.128.70	Because you attached it with aws_eip
+
+Answer: 127.149.128.70
+

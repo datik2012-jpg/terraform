@@ -1,0 +1,438 @@
+What taint actually means
+A resource becomes tainted when Terraform decides:
+
+“This resource was created, but something went wrong. It must be destroyed and recreated.”
+
+A tainted resource still exists in AWS, but Terraform marks it as broken in its state.
+When does Terraform automatically taint a resource?
+1️⃣ Provisioner failure
+If a local-exec or remote-exec provisioner fails, Terraform taints the resource.
+
+Example:
+Your EIP provisioner:
+
+hcl
+provisioner "local-exec" {
+  command = "echo ${aws_eip.eip.public_dns} > /root/cerberus_public_dns.txt"
+}
+If this command fails (permissions, path missing, etc.), Terraform marks the EIP as tainted.
+
+2️⃣ User data failure (cloud-init error)
+If EC2 user_data fails during boot, Terraform does NOT detect it, but AWS marks the instance as unhealthy.
+Terraform may taint it if the instance enters a failed state.
+
+Check inside EC2:
+
+Code
+sudo cat /var/log/cloud-init-output.log
+If this log shows errors, your EC2 is functionally broken even if Terraform didn’t taint it.
+
+3️⃣ AWS API returns a partial failure
+If AWS creates the resource but fails to attach something (like an EIP), Terraform taints it.
+
+4️⃣ Interrupted apply
+If you CTRL+C during apply, or the IaC server crashes mid‑apply, Terraform taints the resource because it cannot guarantee correctness.
+
+5️⃣ Terraform detects drift during apply
+If AWS reports unexpected changes during apply, Terraform taints the resource to force a rebuild.
+
+⭐ When Terraform does NOT taint automatically
+This is the part that confuses people.
+
+Terraform does not taint when:
+
+user_data script fails
+
+cloud-init fails
+
+software installation fails
+
+EC2 boots incorrectly
+
+EIP attaches but EC2 still has a second public IP
+
+your script has wrong permissions
+
+your script has CRLF line endings
+
+your instance is misconfigured but AWS accepted it
+
+Terraform only cares about AWS API success, not whether your instance is actually working.
+
+This is why you sometimes need to manually taint.
+
+⭐ How to manually taint (force rebuild)
+bash
+terraform taint aws_instance.cerberus
+terraform apply
+Terraform will:
+
+destroy the EC2
+
+recreate it
+
+rerun user_data
+
+reattach EIP
+
+rerun provisioners
+
+This is the correct fix when the resource is broken but Terraform doesn’t detect it.
+
+You can see this with:
+
+Code
+terraform state show aws_instance.cerberus
+Look for:
+
+Code
+status = tainted
+
+
+When terrafrom apply fails - it marks the resource as TAINT
+even it can heppen when we have exec command which should be executed in the end of fpovisioning and it cause to the fail.
+
+so one option is destroy and re run apply
+second option is >terraform taint aws_instance.webserver   - for example when this specific webserver deploy failed
+
+as well the option to UNTAIN and in this way resource will not redploy during next apply command
+
+What terraform taint does
+It marks a resource as tainted, meaning:
+
+Terraform will destroy and recreate that resource on the next terraform apply.
+
+It does not immediately destroy anything.
+It simply flags the resource as “broken” so Terraform replaces it.
+
+
+Why you use it
+You use terraform taint when:
+
+A resource is created incorrectly
+
+A provisioner failed
+
+A script didn’t run
+
+You want to force‑recreate something without touching the rest of the infrastructure
+
+⭐ How to taint your EC2 instance
+Example:
+
+bash
+terraform taint aws_instance.cerberus
+Now run:
+
+bash
+terraform apply
+Terraform will:
+
+Destroy the EC2 instance
+
+Recreate it cleanly
+
+Re-run user_data
+
+Re-attach the Elastic IP (if configured correctly)
+
+⭐ How to taint your Elastic IP
+bash
+terraform taint aws_eip.eip
+Then:
+
+bash
+terraform apply
+Terraform will recreate the EIP and reattach it.
+
+
+How to check tainted resources
+bash
+terraform state list
+terraform state show aws_instance.cerberus
+Tainted resources show:
+
+Code
+status = tainted
+⭐ How to untaint
+If you tainted something by mistake:
+
+bash
+terraform untaint aws_instance.cerberus
+⭐ In one sentence
+terraform taint forces Terraform to recreate a resource on the next apply — super useful when something didn’t configure correctly.
+
+
+
+Short version, Dani: running terraform apply again does not recreate the resource, but terraform taint forces Terraform to recreate it.
+That’s the whole difference.
+
+Let me break it down cleanly so you see exactly why taint exists and when you need it.
+
+
+Why NOT just run terraform apply again?
+Because Terraform is declarative.
+
+If nothing in your .tf files changed, Terraform thinks:
+
+“Everything already matches the configuration. No need to recreate anything.”
+
+So when you run:
+
+Code
+terraform apply
+Terraform will say:
+
+Code
+No changes. Infrastructure is up-to-date.
+It will NOT:
+
+rerun user_data
+
+rerun provisioners
+
+recreate EC2
+
+recreate EIP
+
+fix a broken resource
+
+Terraform only recreates resources when configuration changes.
+
+⭐ What terraform taint does
+It tells Terraform:
+
+“This resource is broken. Destroy it and recreate it on the next apply.”
+
+Example:
+
+Code
+terraform taint aws_instance.cerberus
+terraform apply
+
+
+terraform taint aws_instance.cerberus
+terraform apply
+Now Terraform will:
+
+destroy the EC2
+
+recreate the EC2
+
+rerun user_data
+
+reattach EIP
+
+rerun provisioners
+
+This is exactly what you need when:
+
+user_data didn’t run
+
+EIP didn’t attach correctly
+
+a provisioner failed
+
+the instance booted incorrectly
+
+you want a clean rebuild
+
+
+When you SHOULD use terraform taint
+EC2 didn’t install Nginx
+
+user_data script didn’t run
+
+EIP attached wrong
+
+instance booted with wrong settings
+
+you want to force a rebuild without editing code
+
+⭐ When you should NOT use taint
+When you actually changed the .tf code
+(Terraform will recreate automatically)
+
+In one sentence
+terraform apply keeps the resource; terraform taint forces Terraform to recreate it.
+
+///////////////////////LAB Taint and Debuging ////////////
+
+
+Which environment variable should be used to export the logs to a specific path?
+
+If unsure, refer to the documentation. Documentation tab is available at the top right.
+
+Terraform uses:
+
+TF_LOG → controls what level of logging
+
+TF_LOG_PATH → controls where the log file is written
+
+These are standard Terraform debugging variables.
+
+Write logs to /root/terraform-projects/cerberus.log
+bash
+export TF_LOG=DEBUG
+export TF_LOG_PATH=/root/terraform-projects/cerberus.log
+terraform apply
+
+Answer: TF_LOG_PATH
+
+Can you export the debug logs from terraform just by setting TF_LOG_PATH environment variable and providing a path as the value to this variable?
+
+
+Answer: no need both not TF_LOG_PATH
+
+
+We have a configuration directory called /root/terraform-projects/ProjectA. Enable logging with the log level set to ERROR and then export the logs the path /tmp/ProjectA.log.
+
+
+Once the environment variables are set, run a terraform init and apply.
+
+It's OK if this results in an error. Do not change any configuration files before you export the logs!
+
+Do these:
+
+root@iac-server ~/terraform-projects/ProjectA via 💠 default on ☁️  (us-east-1) ✖ export TF_LOG=ERROR
+
+root@iac-server ~/terraform-projects/ProjectA via 💠 default on ☁️  (us-east-1) ➜  export TF_LOG_PATH=/tmp/ProjectA.log
+
+
+when you run init and apply YOU WILL fail but no log created !!!
+
+
+For file been created need:
+
+root@iac-server ~/terraform-projects/ProjectA via 💠 default on ☁️  (us-east-1) ➜  terraform plan > terraform.log 2>&1
+
+
+Which Log Level provides the most details when you run terraform commands?
+
+Answer: TRACE
+
+
+Now navigate to /root/terraform-projects/ProjectB. We already have a main.tf file created for provisioning an AWS EC2 instance with the tag Name: projectb_webserver.
+
+
+Run a terraform init and apply to provision this instance.
+
+
+provider.tf - for mock:
+
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "4.15.0"
+    }
+  }
+}
+
+provider "aws" {
+  region                      = "ca-central-1"
+  skip_credentials_validation = true
+  skip_requesting_account_id  = true
+
+  endpoints {
+    ec2                       = "http://aws:4566"
+  }
+}
+
+
+main.tf:
+resource "aws_instance" "ProjectB" {
+    ami = "ami-0c9bfc21ac5bf10eb"
+    instance_type = "t2.large"
+    tags = {
+        Name = "projectb_webserver"
+        Description = "Oversized Webserver"
+    }
+  
+}
+
+
+run init ,plan and apply
+
+Now, try running a terraform plan again. What is the effect?
+
+
+>terraform plan:
+
+ # aws_instance.ProjectB is tainted, so must be replaced
+
+
+Why is the resource called ProjectB being replaced?
+
+Answer: resource ProjectB is tainted
+
+Untaint the resource called ProjectB so that the resource is not replaced any more.
+
+
+The resource is currently tainted.
+
+>terraform show  - can show us about TAINTET resource
+
+terraform untaint aws_instance.ProjectB
+
+
+What “untaint” actually does
+When Terraform marks a resource as tainted, it means:
+
+Terraform thinks the resource is broken
+
+Terraform will destroy and recreate it on the next apply
+
+When you run:
+
+Code
+terraform untaint aws_instance.ProjectB
+Terraform says:
+
+“Okay, I’ll treat this resource as healthy again.”
+
+And now Terraform will keep the existing EC2 instance instead of replacing it.
+
+try apply (no changes detected):
+
+root@iac-server ~/terraform-projects/ProjectB via 💠 default on ☁️  (us-east-1) ➜  terraform apply
+aws_instance.ProjectB: Refreshing state... [id=i-4fd517e5b18225faa]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration and found no differences, so no
+changes are needed.
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+
+When you SHOULD use untaint
+Use it when:
+
+The resource was tainted by mistake
+
+A provisioner failed but the resource is actually fine
+
+You don’t want Terraform to recreate the resource
+
+You want to avoid downtime
+
+You want to keep the existing EC2 instance exactly as it is
+
+
+When you should NOT use untaint
+Do not untaint when:
+
+user_data failed
+
+cloud-init failed
+
+software didn’t install
+
+EIP didn’t attach
+
+the instance is misconfigured
+
+the resource is genuinely broken
+
+

@@ -1,0 +1,420 @@
+Create the module
+Folder structure:
+
+Code
+modules/
+  ec2-instance/
+    main.tf
+    variables.tf
+    outputs.tf
+
+modules/ec2-instance/main.tf
+hcl
+resource "aws_instance" "this" {
+  ami           = var.ami
+  instance_type = var.instance_type
+
+  tags = {
+    Name = var.name
+  }
+}
+modules/ec2-instance/variables.tf
+hcl
+variable "ami" {
+  type = string
+}
+
+variable "instance_type" {
+  type    = string
+  default = "t2.micro"
+}
+
+variable "name" {
+  type = string
+}
+modules/ec2-instance/outputs.tf
+hcl
+output "instance_id" {
+  value = aws_instance.this.id
+}
+2️⃣ Use the module in your root configuration
+Your main Terraform folder:
+
+Code
+main.tf
+provider.tf
+provider.tf
+hcl
+provider "aws" {
+  region = "us-east-1"
+}
+main.tf
+hcl
+module "web_server" {
+  source        = "./modules/ec2-instance"
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t3.micro"
+  name          = "my-web-server"
+}
+
+output "server_id" {
+  value = module.web_server.instance_id
+}
+
+//////////////////////Using Modules from the Registry ////////
+
+
+Terraform Registry modules are pre‑built, reusable modules published by HashiCorp or the community, and you use them exactly the same way as local modules — except the source points to the registry instead of a folder.
+
+
+
+Example: Using an official Terraform Registry module
+Let’s use the popular AWS VPC module:
+
+Root main.tf
+hcl
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.0.0"
+
+  name = "my-vpc"
+  cidr = "10.0.0.0/16"
+
+  azs             = ["us-east-1a", "us-east-1b"]
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
+  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
+}
+Outputs
+hcl
+output "vpc_id" {
+  value = module.vpc.vpc_id
+}
+
+
+terraform get downloads or updates modules used in your configuration.
+
+What terraform get actually does
+Terraform scans your configuration for any module blocks, like:
+
+hcl
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.0.0"
+}
+Then it:
+
+downloads the module
+
+stores it in .terraform/modules/
+
+updates it if the version changed
+
+ensures your local copy matches the module source
+
+It does not run a plan or apply.
+It only fetches modules.
+
+
+
+hen you use terraform get
+You run it when:
+
+you added a new module
+
+you changed the module source
+
+you updated the module version
+
+you want to refresh module code
+
+Most people don’t run it manually because:
+
+terraform init automatically runs terraform get
+
+
+
+which moudule need to use to create a vpc and two subnets
+
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.0.0"
+
+  name = "my-vpc"
+  cidr = "10.0.0.0/16"
+
+  azs             = ["us-east-1a", "us-east-1b"]
+  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
+  private_subnets = ["10.0.101.0/24", "10.0.102.0/24"]
+}
+
+
+This single module call creates:
+
+VPC
+
+Internet Gateway
+
+Route tables
+
+Public subnets
+
+Private subnets
+
+NAT Gateway (optional)
+
+DHCP options
+
+Security group defaults
+
+Tags
+
+Outputs for everything
+
+
+Example:
+
+hcl
+output "vpc_id" {
+  value = module.vpc.vpc_id
+}
+
+output "public_subnet_ids" {
+  value = module.vpc.public_subnets
+}
+
+output "private_subnet_ids" {
+  value = module.vpc.private_subnets
+}
+
+
+//////////////////////LAB //////////////////
+
+
+A configuration directory has been created at the path /root/terraform-projects/project-sapphire. Inspect the main.tf file created in this directory and answer the following questions.
+
+
+Which configuration block is defined in the main.tf file at the moment?
+
+main.tf (which is red at the momemnt):
+
+module "iam_iam-user" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-user"
+  version = "5.28.0"
+  # insert the 1 required variable here
+}
+
+Answer: module is defined at the moment
+
+What is the source of the module used in this configuration?
+
+Answer: Public Terraform Registry
+
+Explain:
+
+Local module
+Format:
+
+Code
+./modules/vpc
+../shared/iam
+Starts with ./ or ../.
+
+4️⃣ Git module
+Format:
+
+Code
+git::https://github.com/user/repo.git
+Optional ref:
+
+Code
+git::https://github.com/user/repo.git?ref=v1.2.0
+5️⃣ Private registry module
+Format:
+
+Code
+app.terraform.io/<org>/<module>/<provider>
+Example:
+
+Code
+app.terraform.io/mycompany/network/aws
+This is private.
+
+What is the version of the module used?
+Anser: 5.28.0
+
+
+How many required arguments does this module expect?
+
+You may need to look up the documentation to figure this one out.
+Refer: https://registry.terraform.io/modules/terraform-aws-modules/iam/aws/latest/submodules/iam-user
+
+Answer: Only 1 - version ,cause in example:
+
+module "iam_iam-user" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-user"
+  version = "6.6.1"
+}
+
+
+
+Which argument is to be specified, just to create an IAM User with this module?
+
+You may need to look up the documentation to figure this one out.
+Refer: https://registry.terraform.io/modules/terraform-aws-modules/iam/aws/latest/submodules/iam-user
+
+Answer: looked https://registry.terraform.io/modules/terraform-aws-modules/iam/aws/latest/submodules/iam-user
+and i see name should be added so i did:
+
+module "iam_iam-user" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-user"
+  version = "5.28.0"
+  # insert the 1 required variable here
+  name = "vasya.pupkin"
+}
+
+correct asnwer - name
+
+
+Now, update this module block that will allow it to create an IAM User called max. Adhere to the following requirements:
+
+Only use the module block in the main.tf file, do not add a separate resource block.
+Module Name - iam_iam-user
+Only add the single required argument at this time.
+
+
+The provider.tf and variables.tf files have been added to this configuration directory now.
+
+When ready, run a terraform init and plan. You don't have to provision the resources at this moment but you can try should you wish to!
+
+main.tf:
+
+module "iam_iam-user" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-user"
+  version = "5.28.0"
+  # insert the 1 required variable here
+  name = "max"
+}
+
+provider.tf:
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "5.11.0"
+    }
+  }
+}
+
+provider "aws" {
+  region                      = var.region
+  skip_credentials_validation = true
+  skip_requesting_account_id  = true
+  endpoints {
+    iam = "http://aws:4566"
+    ec2 = "http://aws:4566"
+    s3 = "http://aws:4566"
+  }
+}
+
+variables.tf:
+
+variable "region" {
+    default = "us-east-1"
+}
+
+run init and plan and apply - DONE !!!
+
+
+
+How many resources are set to be created in the execution plan ?
+
+Inspect the output of the terraform plan command.
+
+Let's list resources:
+
+root@iac-server ~/terraform-projects/project-sapphire via 💠 default on ☁️  (us-east-1) ➜  terraform state list
+module.iam_iam-user.aws_iam_access_key.this_no_pgp[0]
+module.iam_iam-user.aws_iam_user.this[0]
+module.iam_iam-user.aws_iam_user_login_profile.this[0]
+
+
+Answer: 3 resources
+
+Which resources are set to be created?
+
+Answer: module.iam_iam-user.aws_iam_access_key.this_no_pgp[0]
+        module.iam_iam-user.aws_iam_user.this[0]
+        module.iam_iam-user.aws_iam_user_login_profile.this[0]
+
+
+
+Why is the module creating additional resources, when only the name for creating an IAM User was defined in the main.tf file?
+
+Inspect the Inputs for this module in the documentation:
+https://registry.terraform.io/modules/terraform-aws-modules/iam/aws/latest/submodules/iam-user
+
+Answer: module created 3 resources as per the module configuration 
+
+
+
+We only want to create the IAM User. Update the module block to only allow create_user. Disable create_iam_access_key and create_iam_user_login_profile.
+
+
+When ready, run the terraform workflow to create the resources.
+
+Example disable creations two submoudles:
+
+module "iam_iam-user" {
+  source = "terraform-aws-modules/iam/aws//modules/iam-user"
+
+  name = "dani"
+
+  create_iam_access_key        = false
+  create_iam_user_login_profile = false
+}
+
+So i have modified in the main.tf to disable two submodules creation:
+
+module "iam_iam-user" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-user"
+  version = "5.28.0"
+  # insert the 1 required variable here
+  name = "max"
+  create_iam_access_key        = false
+  create_iam_user_login_profile = false
+}
+
+>run init and apply:
+
+
+Terraform will perform the following actions:
+
+  # module.iam_iam-user.aws_iam_access_key.this_no_pgp[0] will be destroyed
+  # (because index [0] is out of range for count)
+  - resource "aws_iam_access_key" "this_no_pgp" {
+      - create_date          = "2026-07-01T06:53:56Z" -> null
+      - id                   = "LKIAQAAAAAAAAT7QT2Y6" -> null
+      - secret               = (sensitive value) -> null
+      - ses_smtp_password_v4 = (sensitive value) -> null
+      - status               = "Active" -> null
+      - user                 = "max" -> null
+    }
+
+  # module.iam_iam-user.aws_iam_user_login_profile.this[0] will be destroyed
+  # (because index [0] is out of range for count)
+  - resource "aws_iam_user_login_profile" "this" {
+      - id                      = "max" -> null
+      - password                = "{]V1%327tAX45Fa{LXHK" -> null
+      - password_length         = 20 -> null
+      - password_reset_required = true -> null
+      - user                    = "max" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+
+validate NOW only one module been created:
+
+root@iac-server ~/terraform-projects/project-sapphire via 💠 default on ☁️  (us-east-1) ➜  terraform state list
+module.iam_iam-user.aws_iam_user.this[0]
+
+

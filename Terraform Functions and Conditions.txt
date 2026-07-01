@@ -1,0 +1,931 @@
+Terraform functions work interactively in the console.
+Here’s what’s happening:
+
+🧩 Key Functions Demonstrated
+file() — reads the contents of a file. In this case, it loads /root/terraform-projects/main.tf, which defines an AWS instance resource.
+
+length() — returns the number of elements in a list or map. Here, length(var.region) outputs 3, meaning the variable region contains three items.
+
+toset() — converts a list to a set, removing duplicates. The output shows two unique regions: ca-central-1 and us-east-1.
+
+⚙️ Practical Use
+These functions are handy for:
+
+Validating variable content before deployment.
+
+Transforming data types (lists → sets).
+
+Inspecting configuration files directly from the console.
+
+💡 Example Tip
+You can combine these functions to dynamically configure resources:
+
+hcl
+resource "aws_instance" "dev" {
+  count         = length(toset(var.region))
+  ami           = "ami-0edab43b6fa892279"
+  instance_type = "t2.micro"
+}
+
+
+Examples of numeric functions:
+
+max() — returns the largest value among the provided numbers.
+Example: max(-1, 2, -10, 200, -250) → 200
+
+min() — returns the smallest value among the provided numbers.
+Example: min(-1, 2, -10, 200, -250) → -250
+
+
+
+Why It’s Useful
+These functions are handy when:
+
+Setting dynamic thresholds (e.g., choosing the highest CPU count or lowest cost).
+
+Validating numeric variables in your Terraform configurations.
+
+Performing quick calculations directly in the Terraform console without modifying .tf files.
+
+
+variable "cpu_options" {
+  default = [1, 2, 4, 8]
+}
+
+output "max_cpu" {
+  value = max(var.cpu_options...)
+}
+
+
+
+Example String function:
+unction Breakdown
+split() — divides a string into a list using a specified delimiter.
+
+Example:
+
+
+split(",", "ami-xyz,AMI-ABC,ami-efg")
+→ Produces ["ami-xyz", "AMI-ABC", "ami-efg"]
+
+You can also use it with variables:
+
+
+split(",", var.ami)
+If var.ami contains "ami-xyz,AMI-ABC,ami-efg", the result is identical.
+
+Example functions to get keys,values from the map:
+
+This single file defines your map variable and shows how to interact with it using Terraform console functions like keys(), values(), and lookup().
+
+
+# variables.tf
+
+variable "ami" {
+  type = map
+  default = {
+    "us-east-1"   = "ami-xyz",
+    "ca-central-1" = "ami-efg",
+    "ap-south-1"   = "ami-ABC"
+  }
+  description = "A map of AMI IDs for specific regions"
+}
+
+# Example usage in Terraform console
+# Run: terraform console
+
+# Retrieve all region keys
+keys(var.ami)
+# Output: ["ap-south-1", "ca-central-1", "us-east-1"]
+
+# Retrieve all AMI values
+values(var.ami)
+# Output: ["ami-ABC", "ami-efg", "ami-xyz"]
+
+# Lookup a specific AMI by region
+lookup(var.ami, "ca-central-1")
+# Output: ami-efg
+
+
+//////////////////Conditional Expressions ////////
+
+Logical Operators in Terraform
+&& (AND) — returns true only if both conditions are true.
+Example: 8 > 7 && 8 < 10 → true
+
+|| (OR) — returns true if any condition is true.
+Example: 8 > 9 || 8 < 10 → true
+
+! (NOT) — reverses a boolean value.
+Example: ! var.special → false when var.special is true
+
+🧩 Variable Definitions
+In the variables.tf file:
+
+hcl
+variable "special" {
+  type        = bool
+  default     = true
+  description = "Set to true to use special characters"
+}
+
+variable "b" {
+  type    = number
+  default = 25
+}
+These variables can be referenced directly in logical expressions inside your Terraform configuration or console.
+
+⚙️ Example Usage in a Resource
+hcl
+resource "aws_instance" "example" {
+  count         = var.special && var.b < 30 ? 1 : 0
+  ami           = "ami-xyz"
+  instance_type = "t2.micro"
+}
+This creates an instance only if special is true and b is less than 30.
+
+
+
+Example to use condition expression:
+
+
+variables.tf
+hcl
+variable "length" {
+  type        = number
+  description = "The length of the password"
+}
+
+
+What value does title("user-generated password file") produce?
+
+
+
+This defines a numeric variable length that can be passed in via CLI or .tfvars file.
+
+main.tf
+hcl
+resource "random_password" "password-generator" {
+  length = var.length < 8 ? 8 : var.length
+}
+
+output "password" {
+  value = random_password.password-generator.result
+}
+Here’s what’s happening:
+
+The conditional expression ensures the password length is at least 8 characters.
+
+If var.length < 8, Terraform uses 8.
+
+Otherwise, it uses the value of var.length.
+
+The random_password resource generates a secure password.
+
+The output block displays the generated password after applying the configuration.
+
+⚙️ Example Usage
+Run:
+
+bash
+terraform apply -var="length=5"
+Terraform will automatically adjust the password length to 8.
+
+💡 Tip
+You can extend this logic to enforce complexity rules:
+
+hcl
+resource "random_password" "secure" {
+  length           = var.length < 12 ? 12 : var.length
+  special          = true
+  override_special = "_%@"
+}
+
+
+////////////////////////////////LAB //////////////////
+
+In this lab, we will work on functions. Just like we did in the lecture, make use of the terraform console command through this lab to test different functions, and see how they transform and manipulate values.
+
+
+root@iac-server ~ on ☁️  (us-east-1) ➜  terraform console
+> floor(10.9)
+10
+>  
+
+> title("dani livshitz")
+"Dani Livshitz"
+
+Which type of variable does the function lookup working with?
+
+Answer: map to exctract values or keys
+Key Takeaway
+Works only with maps (not lists or objects).
+
+Useful for safely extracting values or keys without causing errors if the key is missing.
+
+
+
+Navigate to the configuration directory /root/terraform-projects/project-sonic. Here, we have a number of variables declared in the variables.tf file.
+What type of variable is cloud_users?
+
+
+variable "cloud_users" {
+     type = string
+     default = "andrew:ken:faraz:mutsumi:peter:steve:braja"
+  
+}
+
+Answer: string
+
+
+This variable contains the developers' names for project-sonic with the names separated by a :.
+Using this variable and the count meta-argument, create IAM users for all developers. Write the resource block and name it as a cloud in the main.tf file.
+
+
+Convert this variable from a string to a list.
+Do not change the variable defined in variables.tf.
+
+
+When ready, create the users by running a terraform init, plan, apply
+
+In variables we have:
+
+variable "cloud_users" {
+     type = string
+     default = "andrew:ken:faraz:mutsumi:peter:steve:braja"
+  
+}
+
+in main.tf i have added this local creates the list and aws_iam_user go one by one and creates the name:
+
+resource "aws_iam_user" "example" {
+  count = length(local.server_list)    
+  name = "${local.server_list[count.index]}"
+}
+
+locals {
+    server_list = split(":", var.cloud_users)
+}
+
+run init and plan and apply: terraform apply -auto-approve
+
+aws_iam_user.example[4]: Creation complete after 3s [id=peter]
+aws_iam_user.example[2]: Creation complete after 3s [id=faraz]
+aws_iam_user.example[6]: Creation complete after 3s [id=braja]
+aws_iam_user.example[5]: Creation complete after 3s [id=steve]
+aws_iam_user.example[3]: Creation complete after 3s [id=mutsumi]
+aws_iam_user.example[0]: Creation complete after 3s [id=andrew]
+aws_iam_user.example[1]: Creation complete after 3s [id=ken]
+
+Apply complete! Resources: 7 added, 0 changed, 0 destroyed.
+
+
+validate:
+
+root@iac-server ~/terraform-projects/project-sonic via 💠 default on ☁️  (us-east-1) ➜  terraform state list
+aws_iam_user.example[0]
+aws_iam_user.example[1]
+aws_iam_user.example[2]
+aws_iam_user.example[3]
+aws_iam_user.example[4]
+aws_iam_user.example[5]
+aws_iam_user.example[6]
+
+
+validate names (there a lot i just looked one):
+
+# aws_iam_user.example[1] will be created
+  + resource "aws_iam_user" "example" {
+      + arn           = (known after apply)
+      + force_destroy = false
+      + id            = (known after apply)
+      + name          = "ken"
+      + path          = "/"
+      + tags_all      = (known after apply)
+      + unique_id     = (known after apply)
+    }
+
+another option to do this is:
+
+
+resource "aws_iam_user" "cloud" {
+     name = split(":",var.cloud_users)[count.index]
+     count = length(split(":",var.cloud_users))
+
+}
+
+What is the name of the IAM User that is created at the Index 6, of the IAM User at address aws_iam_user.cloud ?
+
+Use the terraform console to find out.
+
+Answer: 
+
+ # aws_iam_user.cloud[6] will be created
+  + resource "aws_iam_user" "cloud" {
+      + arn           = (known after apply)
+      + force_destroy = false
+      + id            = (known after apply)
+      + name          = "braja"
+      + path          = "/"
+      + tags_all      = (known after apply)
+      + unique_id     = (known after apply)
+    }
+
+Locate the index of the element called oni in the variable called sf.
+
+variable "sf" {
+  type = list
+  default = [
+    "ryu",
+    "ken",
+    "akuma",
+    "seth",
+    "zangief",
+    "poison",
+    "gen",
+    "oni",
+    "thawk",
+    "fang",
+    "rashid",
+    "birdie",
+    "sagat",
+    "bison",
+    "cammy",
+    "chun-li",
+    "balrog",
+    "cody",
+    "rolento",
+    "ibuki"
+
+  ]
+}
+
+Answer: 7
+
+
+What type is the variable called media?
+
+variable "media" {
+  type = set(string)
+  default = [ 
+    "/media/tails.jpg",
+    "/media/eggman.jpg",
+    "/media/ultrasonic.jpg",
+    "/media/knuckles.jpg",
+    "/media/shadow.jpg",
+      ]
+  
+}
+Answer: set(string)
+
+
+We have now, updated the main.tf in this configuration directory and added a new resource block to create a S3 bucket called sonic-media.
+
+Create an additional resource called upload_sonic_media to upload the files listed in the variable called media to this bucket.
+
+Use the following specifications:
+
+Use the for_each meta-argument to upload all the elements of the media variable.
+bucket: Use reference expression to the bucket sonic-media.
+source: Each element in the variable called media.
+key: Should be the name of the files being uploaded (minus the /media/). For an example, eggman.jpg, shadow.jpg e.t.c.
+
+Do not alter the variables!
+When ready, run terraform apply to create the bucket and upload the items.
+
+Terraform for_each does NOT accept a raw list.
+You must convert the list into a set using toset.
+
+main.tf:
+
+resource "aws_iam_user" "cloud" {
+     name = split(":",var.cloud_users)[count.index]
+     count = length(split(":",var.cloud_users))
+  
+}
+resource "aws_s3_bucket" "sonic_media" {
+     bucket = var.bucket
+  
+}
+
+resource "aws_s3_object" "upload_sonic_media" {
+  for_each = toset(var.media) # convert list to set first - for media list
+  bucket = aws_s3_bucket.sonic_media.bucket
+  source = each.value # local file path from media
+  #each.value
+  key  = replace(each.value, "/media/", "") # path inside the bucket
+}
+
+variables:
+
+variable "media" {
+  type = set(string)
+  default = [ 
+    "/media/tails.jpg",
+    "/media/eggman.jpg",
+    "/media/ultrasonic.jpg",
+    "/media/knuckles.jpg",
+    "/media/shadow.jpg",
+      ]
+  
+}
+
+run init,plan and apply with auto approve:
+
+root@iac-server ~/terraform-projects/project-sonic via 💠 default on ☁️  (us-east-1) ➜  terraform apply -auto-approve
+
+
+For the final question, navigate to the configuration directory called /root/terraform-projects/project-mario.
+
+We have an empty main.tf file here. The provider and variables have already been configured for you.
+
+What is the value of the variable called small?
+
+variable "small" {
+    type = string
+    default = "t2.nano"
+}
+
+Answer: t2.nano
+
+What is the current value for the variable called name?
+
+variable  "name" {
+    type = string
+}
+
+Answer: undefined
+
+
+Create an EC2 Instance with the resource name mario_servers.
+
+Use the following specifications:
+
+AMI: Use variable called ami.
+
+
+Tags: Create a tag with key Name and value set to the variable called name.
+
+
+Instance_type: Use a conditional expression so that - If the instance is created with a tag Name = "tiny", it should use the variable called small else the variable called large.
+
+
+We will supply the variable called name using the -var command line flag.
+
+
+
+main.tf:
+
+resource "aws_instance" "mario_servers" {
+  ami           = var.ami
+  instance_type = var.name == "tiny" ? var.small : var.large
+
+  tags = {
+    Name = var.name
+  }
+}
+
+variables.rf:
+
+variable "region" {
+    default = "us-east-1"
+}
+variable  "name" {
+    type = string
+}
+variable "ami" {
+    type = string
+    default = "ami-09331245601cf"
+}
+variable "small" {
+    type = string
+    default = "t2.nano"
+}
+variable "large" {
+    type = string
+    default = "t2.2xlarge"
+}
+
+mock provider.tf:
+
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "4.15.0"
+    }
+  }
+}
+
+provider "aws" {
+  region                      = var.region
+  skip_credentials_validation = true
+  skip_requesting_account_id  = true
+  s3_use_path_style = true
+  endpoints {
+    ec2 = "http://aws:4566"
+    iam = "http://aws:4566"
+    s3 = "http://aws:4566"
+  }
+}
+
+
+run init,plan,apply + provide a name , i just provided t3.micro :
+
+root@iac-server ~/terraform-projects/project-mario via 💠 default on ☁️  (us-east-1) ➜  terraform apply
+var.name
+  Enter a value: t3.micro
+
+
+///////////////////////////Terraform Workspaces (OSS) ///////////
+That image is a great illustration of how Terraform workspaces can dynamically control configuration values — especially AMIs — across different environments or projects.
+
+Here’s what’s happening in that setup:
+
+🧩 Concept Overview
+Terraform workspaces let you maintain multiple independent state files within the same configuration.
+Each workspace acts like a separate environment (e.g., ProjectA, ProjectB, dev, prod).
+
+You can check your current workspace with:
+
+bash
+terraform workspace show
+or in the console:
+
+bash
+terraform.workspace
+⚙️ How the Example Works
+variables.tf
+hcl
+variable "ami" {
+  type = map(string)
+  default = {
+    "ProjectA" = "ami-0edab43b6fa892279"
+    "ProjectB" = "ami-0c2f25c1f66a1ff4d"
+  }
+}
+main.tf
+hcl
+resource "aws_instance" "projectA" {
+  ami           = lookup(var.ami, terraform.workspace)
+  instance_type = var.instance_type
+
+  tags = {
+    Name = terraform.workspace
+  }
+}
+Console output
+bash
+> terraform.workspace
+ProjectA
+
+> lookup(var.ami, terraform.workspace)
+ami-0edab43b6fa892279
+✅ When you switch to workspace ProjectA, Terraform automatically picks the AMI for ProjectA.
+✅ When you switch to ProjectB, it uses the AMI for ProjectB.
+
+🧠 Why this is powerful
+You can reuse the same configuration for multiple environments.
+
+Each workspace keeps its own state file, so resources don’t conflict.
+
+The lookup() function dynamically selects values based on the active workspace.
+
+🚀 Common Commands
+Command	Description
+terraform workspace list	Show all workspaces
+terraform workspace new dev	Create a new workspace
+terraform workspace select prod	Switch to another workspace
+terraform workspace show	Display the current workspace
+
+
+in case we want to add new workspace we need as well update the field in our case is ami:
+
+our variables.tf AMI map must include a "dev" entry:
+
+hcl
+variable "ami" {
+  type = map(string)
+  default = {
+    "ProjectA" = "ami-0edab43b6fa892279"
+    "ProjectB" = "ami-0c2f25c1f66a1ff4d"
+    "dev"      = "ami-0a1234567890abcd"
+  }
+}
+
+///////////////////////////// LAB ///////////////////
+
+When we start off and create a configuration in terraform, what is the workspace that is created, to begin with?
+
+Answer: default
+
+
+Navigate to the configuration directory /root/terraform-projects/project-sapphire. We have a few configuration files already created here. How may workspaces are created for this configuration currently?
+
+terraform workspace show  or list
+
+root@iac-server ~/terraform-projects/project-sapphire via 💠 default on ☁️  (us-east-1) ✖ terraform workspace show
+default
+
+root@iac-server ~/terraform-projects/project-sapphire via 💠 default on ☁️  (us-east-1) ➜  terraform workspace list
+* default
+
+Anser: 1 workspace which is default
+
+Create three new workspaces called us-payroll, uk-payroll and india-payroll.
+
+>terraform workspace new us-payroll
+>terraform workspace new uk-payroll
+>terraform workspace new india-payroll
+
+and validate:
+
+root@iac-server ~/terraform-projects/project-sapphire via 💠 india-payroll on ☁️  (us-east-1) ✖ terraform workspa
+ce list
+  default
+* india-payroll
+  uk-payroll
+  us-payroll
+
+Now, switch to the workspace called us-payroll.
+>terraform workspace select us-payroll
+
+root@iac-server ~/terraform-projects/project-sapphire via 💠 india-payroll on ☁️  (us-east-1) ✖ terraform workspace select us-payroll
+Switched to workspace "us-payroll".
+
+
+Options: 
+
+Subcommands:
+    delete    Delete a workspace
+    list      List Workspaces
+    new       Create a new workspace
+    select    Select a workspace
+    show      Show the name of the current workspace
+
+Where would the state file for the workspace called india-payroll be stored??
+
+Choose the correct path relative to the current configuration directory (/root/terraform-projects/project-sapphire)
+
+Answer: in ./terraform.tfstate.d/india-payroll
+
+
+Let's now write the main.tf file to make use of the same module that we saw in the terraform modules lecture.
+
+The project-sapphire configuration directory will be used to deploy the same payroll application stack in different regions.
+
+The module is located at the path /root/terraform-projects/modules/payroll-app.
+
+Inside the configuration directory, we have already added the variables.tf and the provider.tf file. Inspect them.
+
+What type of variable is region?
+
+Answer: map
+
+variable "region" {
+    type = map
+    default = {
+        "us-payroll" = "us-east-1"
+        "uk-payroll" = "eu-west-2"
+        "india-payroll" = "ap-south-1"
+    }
+
+}
+
+What is the default value of the key called india-payroll for the variable region?
+
+variable "region" {
+    type = map
+    default = {
+        "us-payroll" = "us-east-1"
+        "uk-payroll" = "eu-west-2"
+        "india-payroll" = "ap-south-1"
+    }
+
+}
+
+Answer: ap-south-1 for india-payroll
+
+What is the default value of the key called india-payroll for the variable ami?
+
+
+variable "ami" {
+    type = map
+    default = {
+        "us-payroll" = "ami-24e140119877avm"
+        "uk-payroll" = "ami-35e140119877avm"
+        "india-payroll" = "ami-55140119877avm"
+    }
+}
+
+Answer: ami-55140119877avm for india-payroll
+
+
+
+Now, update the main.tf of the root module to call the child module located at /root/terraform-projects/modules/payroll-app. Adhere to the following specifications:
+
+module name: payroll_app
+This module expects two mandatory arguments:
+
+a. app_region - use the values from variable called region
+
+b. ami - use the values from the variable called ami
+The values for these two arguments should be selected based on the workspace you are on.
+
+
+For example, if on us-payroll workspace, the app_region should be us-east-1 and the ami ami-24e140119877avm OR for uk-payroll, the app_region should be eu-west-2 and the ami ami-35e140119877avm e.t.c .
+
+Once ready, run terraform init. You don't have to create(apply) the resources yet!
+Refer to the README.md file located at /root/terraform-projects/modules/payroll-app to see how to use this module.
+
+
+main.tf:
+
+module "payroll_app" {
+  source         = "/root/terraform-projects/modules/payroll-app"
+  ami            = lookup(var.ami, terraform.workspace)
+  app_region     = lookup(var.region, terraform.workspace)
+  name           = "web-${terraform.workspace}"
+}
+
+
+providers.tf:
+
+variable "region" {
+    type = map
+    default = {
+        "us-payroll" = "us-east-1"
+        "uk-payroll" = "eu-west-2"
+        "india-payroll" = "ap-south-1"
+    }
+
+}
+variable "ami" {
+    type = map
+    default = {
+        "us-payroll" = "ami-24e140119877avm"
+        "uk-payroll" = "ami-35e140119877avm"
+        "india-payroll" = "ami-55140119877avm"
+    }
+}
+
+providers.tf:
+
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "4.15.0"
+    }
+  }
+}
+
+
+provider "aws" {
+  region                      = lookup(var.region, terraform.workspace)
+  skip_credentials_validation = true
+  skip_requesting_account_id  = true
+  s3_use_path_style = true
+  endpoints {
+    ec2 = "http://aws:4566"
+    dynamodb = "http://aws:4566"
+    s3 = "http://aws:4566"
+  }
+}
+
+lets check which workspace in use at the moment:
+
+root@iac-server ~/terraform-projects/project-sapphire via 💠 us-payroll on ☁️  (us-east-1) ➜  terraform workspace list
+  default
+  india-payroll
+  uk-payroll
+* us-payroll
+
+run init ,plan and apply.
+
+Validate resources:
+
+root@iac-server ~/terraform-projects/project-sapphire via 💠 us-payroll on ☁️  (us-east-1) ➜  terraform state list
+module.payroll_app.aws_dynamodb_table.payroll_db
+module.payroll_app.aws_instance.app_server
+module.payroll_app.aws_s3_bucket.payroll_data
+
+in the modules/payroll-app we have:
+
+app-server.tf:
+
+resource "aws_instance" "app_server" {
+  ami = var.ami
+  instance_type =  "t2.medium"
+  tags = {
+    Name = "${var.app_region}-app-server"
+  }
+  depends_on = [ aws_dynamodb_table.payroll_db,
+                 aws_s3_bucket.payroll_data
+               ]
+
+}
+dynamodb.tf
+resource "aws_dynamodb_table" "payroll_db" {
+  name           = "${var.app_region}_user_data"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "EmployeeID"
+
+  attribute {
+    name = "EmployeeID"
+    type = "N"
+  }
+  attribute {
+    name = "Department"
+    type = "S"
+  }
+  attribute {
+    name = "age"
+    type = "N"
+  }
+  attribute {
+    name = "Address"
+    type = "S"
+  }
+  global_secondary_index {
+    name             = "EmployeeID"
+    hash_key         = "EmployeeID"
+    projection_type    = "ALL"
+    
+  }
+  global_secondary_index {
+    name             = "age"
+    hash_key         = "age"
+    projection_type    = "ALL"
+    
+  }
+  global_secondary_index {
+    name             = "Department"
+    hash_key         = "Department"
+    projection_type    = "ALL"
+    
+  }
+   global_secondary_index {
+    name             = "Address"
+    hash_key         = "Address"
+    projection_type    = "ALL"
+    
+  }
+}
+
+s3-bucket.tf:
+
+resource "aws_s3_bucket" "payroll_data" {
+
+  bucket = "${var.app_region}-${var.bucket}"
+
+}
+
+variables.tf:
+
+variable "app_region" {
+    default = "us-east-1"
+}
+variable "ami" {
+    type = string
+    default = "ami-24e140119877avm"
+}
+variable "bucket" {
+    default = "flexit-payroll-alpha-22001c"
+}
+
+Now, using the same configuration, create the resources on all three workspaces that you created earlier!
+
+Run terrafrom select for every region key : india-payroll, uk-payroll, us-payroll - to swith to the workspace
+and then run there init and apply
+
+Example:
+
+root@iac-server ~/terraform-projects/project-sapphire via 💠 us-payroll on ☁️  (us-east-1) ➜  terraform workspace select india-payroll
+Switched to workspace "india-payroll".
+
+root@iac-server ~/terraform-projects/project-sapphire via 💠 india-payroll on ☁️  (us-east-1) ➜  terraform init
+Initializing the backend...
+Initializing modules...
+Initializing provider plugins...
+- Reusing previous version of hashicorp/aws from the dependency lock file
+- Using previously-installed hashicorp/aws v4.15.0
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+root@iac-server ~/terraform-projects/project-sapphire via 💠 india-payroll on ☁️  (us-east-1) ➜  terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated
+with the following symbols:
+  + create
+
+
+
